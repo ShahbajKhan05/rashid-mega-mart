@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "./components/LanguageProvider";
-import FloatingWhatsApp from "./components/FloatingWhatsApp";
+
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -26,7 +26,7 @@ export default function RootLayout({
       <body className="antialiased">
         <LanguageProvider>
           {children}
-          <FloatingWhatsApp />
+          
         </LanguageProvider>
       </body>
     </html>

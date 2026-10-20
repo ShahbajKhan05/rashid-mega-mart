@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useLanguage } from "./LanguageProvider";
 
 export const KITS_DATA = [
@@ -643,18 +644,21 @@ export default function BuildYourKit() {
                   ? `WhatsApp पर ${kitName} ऑर्डर करें, कुल ${formatMoney(totalPrice)}`
                   : `Order ${kitName} on WhatsApp, total ${formatMoney(totalPrice)}`
               }
-              className="mt-4 flex min-h-12 w-full items-center justify-center gap-2.5 rounded-full bg-[#800020] px-5 py-3.5 text-center text-sm font-extrabold text-[#FFF9D8] shadow-[0_8px_20px_rgba(128,0,32,0.18)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#610019] hover:shadow-[0_12px_24px_rgba(128,0,32,0.24)] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#800020] active:translate-y-0"
+              className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-[#25D366] bg-transparent px-3 py-3 text-center text-xs font-extrabold leading-snug text-[#075E54] shadow-sm transition-colors duration-200 hover:border-[#128C7E] hover:bg-[#E8FFF0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#128C7E] active:scale-[0.99] sm:gap-2.5 sm:px-5 sm:py-3.5 sm:text-sm"
             >
-              <svg
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="h-5 w-5 shrink-0"
+              <Image
+                src="/Whatsapp-3d.svg"
+                alt=""
+                width={26}
+                height={26}
+                unoptimized
                 aria-hidden="true"
-              >
-                <path d="M20.52 3.48A11.84 11.84 0 0 0 12.08 0C5.5 0 .15 5.35.15 11.93c0 2.1.55 4.15 1.6 5.96L0 24l6.27-1.64a11.9 11.9 0 0 0 5.8 1.48h.01c6.58 0 11.93-5.35 11.93-11.93 0-3.19-1.24-6.18-3.49-8.43ZM12.08 21.8a9.84 9.84 0 0 1-5.01-1.37l-.36-.21-3.72.97.99-3.62-.24-.37a9.85 9.85 0 1 1 8.34 4.6Zm5.41-7.38c-.3-.15-1.75-.87-2.02-.97-.27-.1-.47-.15-.66.15-.2.3-.76.97-.93 1.17-.17.2-.34.22-.64.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.47-1.74-1.64-2.03-.17-.3-.02-.46.13-.6.13-.13.3-.34.44-.5.15-.17.2-.3.3-.5.1-.2.05-.38-.02-.53-.07-.15-.66-1.6-.91-2.2-.24-.58-.48-.5-.66-.51h-.56c-.2 0-.52.07-.79.37-.27.3-1.03 1.01-1.03 2.46s1.06 2.85 1.2 3.05c.15.2 2.08 3.18 5.04 4.46.7.3 1.25.49 1.68.62.7.22 1.34.19 1.85.12.56-.08 1.75-.72 2-1.41.25-.7.25-1.29.17-1.42-.07-.12-.27-.2-.57-.34Z" />
-              </svg>
-              <span>{language === "hi" ? "WhatsApp पर ऑर्डर करें" : "Order on WhatsApp"}</span>
-              <span aria-hidden="true">↗</span>
+                className="h-6 w-6 shrink-0 object-contain sm:h-7 sm:w-7"
+              />
+              <span className="min-w-0 whitespace-normal text-center">
+                {language === "hi" ? "WhatsApp पर ऑर्डर करें" : "Order on WhatsApp"}
+              </span>
+              <span aria-hidden="true" className="shrink-0 text-base leading-none">↗</span>
             </a>
           ) : (
             <button
@@ -673,6 +677,12 @@ export default function BuildYourKit() {
           </p>
         </div>
       </div>
+
+      {/* Bottom Section Divider */}
+      <div
+        aria-hidden="true"
+        className="mx-auto mt-8 h-px w-full bg-gradient-to-r from-transparent via-[#800020]/30 to-transparent"
+      />
     </div>
   );
 }

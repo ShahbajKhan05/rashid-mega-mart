@@ -1,31 +1,39 @@
+
 import Navbar from "./components/Navbar";
-import DiwaliAnnouncement from "./components/DiwaliAnnouncement";
 import HeroSection from "./components/HeroSection";
+import BrandMarquee from "./components/BrandMarquee";
 import FreeDeliveryBanner from "./components/FreeDeliveryBanner";
 import KitBuilder from "./components/KitBuilder";
 import Footer from "./components/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[#FFF9D8] text-[#171717]">
-      {/* Header Navigation */}
+    <main
+      id="top"
+      className="min-h-screen w-full overflow-x-clip bg-[#FFF9D8] text-[#171717]"
+    >
+      {/* Fixed Navigation */}
       <Navbar />
-      <DiwaliAnnouncement />
 
-      {/* Banner, Location & Category Header */}
+      {/* Hero Section */}
       <HeroSection />
 
-     
+      {/* Single-line Animated Brand Marquee */}
+      <BrandMarquee />
 
-      {/* Custom Kit Builder Component */}
-      <section id="kit" className="mx-auto max-w-7xl px-3 py-6 sm:px-6">
+      {/* Grocery Kit Builder */}
+      <section
+        id="kit"
+        aria-label="Grocery kits"
+        className="mx-auto w-full max-w-7xl scroll-mt-20 px-3 py-6 sm:px-6 sm:py-8"
+      >
         <KitBuilder />
       </section>
 
-       {/* Free Delivery Banner */}
-      <div className="px-4 py-4 sm:px-6 lg:px-8">
-  <FreeDeliveryBanner />
-</div>
+      {/* Free Delivery Banner */}
+      <div className="py-3 sm:py-4">
+        <FreeDeliveryBanner />
+      </div>
 
       {/* Footer */}
       <Footer />
