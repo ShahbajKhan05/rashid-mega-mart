@@ -1,77 +1,56 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "./LanguageProvider";
 
 export default function Footer() {
-  const [time, setTime] = useState("--:--:--");
-  const [year, setYear] = useState(2026);
+  const { t } = useLanguage();
+  const [time, setTime] = useState("--:--");
+  const [year, setYear] = useState("2026");
 
   useEffect(() => {
-    // Get the current year in the browser
-    setYear(new Date().getFullYear());
+    setYear(String(new Date().getFullYear()));
 
-    // Live Indian Standard Time clock
     const updateTime = () => {
       setTime(
         new Intl.DateTimeFormat("en-IN", {
           timeZone: "Asia/Kolkata",
           hour: "2-digit",
           minute: "2-digit",
-          second: "2-digit",
           hour12: false,
         }).format(new Date())
       );
     };
 
     updateTime();
-
-    const interval = window.setInterval(updateTime, 1000);
-
+    const interval = window.setInterval(updateTime, 30_000);
     return () => window.clearInterval(interval);
   }, []);
 
   return (
-    <footer
-      id="contact"
-      className="mt-auto w-full bg-[#FFF9D8] px-5 pb-7 pt-[clamp(4rem,8vw,7rem)] sm:px-[5%]"
-    >
-      <div className="mx-auto max-w-[1600px]">
+    <footer className="site-footer w-full shrink-0 border-t border-[#800020]/10 bg-[#FFF9D8] px-4 py-4 text-center">
+      <div className="mx-auto max-w-5xl">
         <a
-          href="#home"
-          aria-label="Rashid Mega Mart - Back to top"
-          className="block w-full text-center text-[clamp(2.2rem,10vw,9.5rem)] font-black leading-[0.95] tracking-[-0.075em] no-underline sm:whitespace-nowrap"
+          href="/"
+          className="inline-block text-xl font-black tracking-tight no-underline sm:text-2xl"
         >
           <span className="text-[#171717]">Rashid </span>
-          <span className="burgundy-gradient-text">Mega Mart</span>
+          <span className="bg-[linear-gradient(110deg,#171717,#800020_52%,#4B0018)] bg-clip-text text-transparent">
+            Mega Mart
+          </span>
         </a>
 
-        <div className="mt-7 grid grid-cols-1 items-center gap-3 text-center text-xs sm:grid-cols-3 sm:text-left">
-          <p className="text-[#171717]/75">
-            © {year}{" "}
-            <span className="font-semibold text-[#800020]">
-              Rashid Mega Mart
-            </span>
-          </p>
+        <div className="mx-auto my-3 h-[1px] w-24 bg-[#800020]/15"></div>
 
-          <p className="tabular-nums text-[#171717]/75 sm:text-center">
-            Time <span className="font-bold text-[#800020]">→</span>{" "}
-            <span className="font-semibold text-[#800020]">{time}</span>{" "}
-            <span className="text-[#171717]">IST</span>
+        <div className="flex flex-col items-center justify-center gap-1 text-[10px] text-[#171717]/70 sm:text-[11px]">
+          <p>
+            © {year} <span className="font-semibold text-[#800020]">Rashid Mega Mart</span> | Time: <span className="font-bold text-[#800020]">{time}</span> IST
           </p>
-
-          <a
-            href="https://wa.me/918962531603"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-[#171717]/75 no-underline transition-colors hover:text-[#800020] sm:text-right"
-          >
-            Contact on{" "}
-            <span className="font-semibold text-[#800020]">
-              WhatsApp
-            </span>{" "}
-            <span className="text-[#800020]">↗</span>
-          </a>
+          <p>
+            {t("madeWith")} <span className="text-[#800020]">♥</span> {t("by")}{" "}
+            <span className="font-bold text-[#171717]">Noor </span>
+            <span className="font-bold text-[#800020]">Technologies</span>
+          </p>
         </div>
       </div>
     </footer>

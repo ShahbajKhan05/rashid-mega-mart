@@ -1,7 +1,8 @@
-
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { LanguageProvider } from "./components/LanguageProvider";
+import FloatingWhatsApp from "./components/FloatingWhatsApp";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -10,7 +11,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Rashid Mega Mart | Everyday Essentials",
+  title: "Rashid Mega Mart | Ghoghar, Rewa",
   description:
     "Rashid Mega Mart, Ghoghar, Rewa, Madhya Pradesh. Ghar ke zaroori samaan aur value kits.",
 };
@@ -21,11 +22,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${plusJakartaSans.variable} font-sans antialiased`}
-      >
-        {children}
+    <html lang="en" className={plusJakartaSans.variable}>
+      <body className="antialiased">
+        <LanguageProvider>
+          {children}
+          <FloatingWhatsApp />
+        </LanguageProvider>
       </body>
     </html>
   );
