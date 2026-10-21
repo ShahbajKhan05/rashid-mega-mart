@@ -390,13 +390,13 @@ export default function BuildYourKit() {
   )}`;
 
   return (
-    <div className="mx-auto max-w-2xl px-2 py-2 sm:px-4">
+    <div className="mx-auto max-w-3xl px-2 py-1 sm:px-4">
       {/* Title */}
-      <div className="mb-3 text-center">
+      <div className="mb-2 text-center">
         <span className="rounded-full bg-[#800020]/10 px-3 py-1 text-[10px] font-extrabold uppercase tracking-widest text-[#800020]">
           {language === "hi" ? "राशिद मेगा मार्ट किट्स" : "Rashid Mega Mart Bundles"}
         </span>
-        <h2 className="mt-2 text-xl font-black text-[#171717] sm:text-2xl">
+        <h2 className="mt-1 text-lg font-black text-[#171717] sm:text-2xl">
           {language === "hi" ? "अपनी पसंदीदा किट चुनें" : "Select Your Grocery Kit"}
           <span className="text-[#800020]">.</span>
         </h2>
@@ -404,7 +404,7 @@ export default function BuildYourKit() {
 
       {/* Kit selector: all kits and advertised prices remain from KITS_DATA */}
       <div
-        className="no-scrollbar mb-4 flex gap-2.5 overflow-x-auto px-1 pb-2 pt-1"
+        className="no-scrollbar mb-3 flex gap-2 overflow-x-auto px-0.5 pb-1 pt-1"
         aria-label={language === "hi" ? "किट चुनें" : "Choose a kit"}
       >
         {KITS_DATA.map((kit, index) => {
@@ -418,42 +418,43 @@ export default function BuildYourKit() {
               type="button"
               onClick={() => setSelectedKitIndex(index)}
               aria-pressed={isSelected}
-              className={`relative flex w-44 shrink-0 flex-col justify-between rounded-2xl border p-3 text-left transition-all duration-300 active:scale-[0.98] ${
+              className={`relative flex w-40 shrink-0 flex-col justify-between rounded-xl border p-2.5 text-left transition-all duration-200 active:scale-[0.98] ${
                 isSelected
                   ? "border-[#800020] bg-[linear-gradient(135deg,#FFFDF5,#FFF3D1)] shadow-md ring-2 ring-[#800020]/20"
                   : "border-[#800020]/15 bg-white opacity-85 shadow-sm hover:border-[#800020]/40"
               }`}
             >
-              <span
-                className={`self-start rounded-md px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider ${
-                  isSelected
-                    ? "bg-[#800020] text-white"
-                    : "bg-[#800020]/10 text-[#800020]"
-                }`}
-              >
-                {badge}
-              </span>
+              <div className="flex items-center justify-between gap-1">
+                <span
+                  className={`max-w-[58%] truncate rounded-md px-1.5 py-0.5 text-[7px] font-black uppercase tracking-wide ${
+                    isSelected
+                      ? "bg-[#800020] text-white"
+                      : "bg-[#800020]/10 text-[#800020]"
+                  }`}
+                >
+                  {badge}
+                </span>
+                <span className="shrink-0 rounded-full border border-[#D4A84F]/70 bg-[#FFF0BF] px-1.5 py-0.5 text-[8px] font-black text-[#800020]">
+                  {language === "hi" ? "बचत " : "SAVE "}
+                  {formatMoney(kit.mrp - kit.totalPrice)}
+                </span>
+              </div>
 
-              <div className="my-2">
-                <h3 className="line-clamp-1 text-xs font-black text-[#171717]">
+              <div className="my-1.5">
+                <h3 className="line-clamp-1 text-xs font-black leading-tight text-[#171717]">
                   {kitName}
                 </h3>
-                <p className="mt-0.5 line-clamp-2 min-h-7 text-[9px] leading-3.5 text-[#171717]/65">
+                <p className="mt-0.5 line-clamp-2 min-h-6 text-[9px] leading-3 text-[#171717]/65">
                   {language === "hi" ? kit.descHi : kit.descEn}
                 </p>
               </div>
 
-              <div className="flex items-baseline justify-between gap-1 border-t border-[#800020]/10 pt-1.5">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-sm font-black text-[#800020]">
-                    {formatMoney(kit.totalPrice)}
-                  </span>
-                  <span className="text-[9px] text-[#171717]/40 line-through">
-                    {formatMoney(kit.mrp)}
-                  </span>
-                </div>
-                <span className="text-[9px] font-extrabold text-[#800020]">
-                  {language === "hi" ? "बचत" : "Save"} {formatMoney(kit.mrp - kit.totalPrice)}
+              <div className="flex items-baseline gap-1.5 border-t border-[#800020]/10 pt-1.5">
+                <span className="text-base font-black tracking-tight text-[#800020]">
+                  {formatMoney(kit.totalPrice)}
+                </span>
+                <span className="text-[9px] text-[#171717]/45 line-through">
+                  {formatMoney(kit.mrp)}
                 </span>
               </div>
             </button>
@@ -462,17 +463,17 @@ export default function BuildYourKit() {
       </div>
 
       {/* Active kit and item controls */}
-      <div className="rounded-2xl border border-[#800020]/15 bg-[#FFFDF5] p-3.5 shadow-sm sm:p-5">
-        <div className="flex items-start justify-between gap-2 border-b border-[#800020]/10 pb-3">
+      <div className="rounded-2xl border border-[#800020]/15 bg-[#FFFDF5] p-3 shadow-sm sm:p-4">
+        <div className="flex items-start justify-between gap-2 border-b border-[#800020]/10 pb-2">
           <div className="min-w-0">
             <span className="text-[9px] font-black uppercase tracking-wider text-[#800020]">
               {kitName}
             </span>
-            <h3 className="text-lg font-black leading-tight text-[#171717] sm:text-xl">
+            <h3 className="text-base font-black leading-tight text-[#171717] sm:text-xl">
               {language === "hi" ? "अपनी किट बनाएं" : "Customize your kit"}
               <span className="text-[#800020]">.</span>
             </h3>
-            <p className="mt-0.5 text-[11px] text-[#171717]/75">
+            <p className="mt-0.5 text-[10px] leading-snug text-[#171717]/75">
               {language === "hi" ? currentKit.descHi : currentKit.descEn}
             </p>
           </div>
@@ -480,14 +481,14 @@ export default function BuildYourKit() {
           <button
             type="button"
             onClick={resetCurrentKit}
-            className="shrink-0 rounded-full border border-[#800020]/20 bg-white px-2.5 py-1.5 text-[10px] font-bold text-[#800020] transition hover:bg-[#FFF9D8] active:scale-95"
+            className="shrink-0 rounded-full border border-[#800020]/20 bg-white px-2 py-1 text-[9px] font-bold text-[#800020] transition hover:bg-[#FFF9D8] active:scale-95"
           >
             {language === "hi" ? "रीसेट ↺" : "Reset kit ↺"}
           </button>
         </div>
 
         {/* Live item count */}
-        <div className="mt-3 flex items-center justify-between rounded-xl bg-[#FFF9D8] px-3 py-2">
+        <div className="mt-2 flex items-center justify-between rounded-xl border border-[#800020]/8 bg-[#FFF9D8] px-3 py-1.5">
           <div>
             <p className="text-xs font-bold text-[#171717]">
               {selectedItemCount}{" "}
@@ -512,13 +513,13 @@ export default function BuildYourKit() {
         </div>
 
         {/* Column headers */}
-        <div className="mt-3 flex items-center justify-between px-1 text-[9px] font-bold uppercase tracking-wider text-[#171717]/50">
+        <div className="mt-2 flex items-center justify-between px-1 text-[9px] font-bold uppercase tracking-wider text-[#171717]/50">
           <span>{language === "hi" ? "सामान / पैक मूल्य" : "Item / Pack Price"}</span>
           <span>{language === "hi" ? "मात्रा" : t("quantity")}</span>
         </div>
 
         {/* Each kit has its own quantity state; zero-quantity items remain available to re-add */}
-        <div className="mt-1 divide-y divide-[#800020]/10">
+        <div className="divide-y divide-[#800020]/10">
           {currentKit.items.map((item, index) => {
             const quantity = quantities[index] ?? 0;
             const itemName = language === "hi" ? item.nameHi : item.nameEn;
@@ -526,19 +527,19 @@ export default function BuildYourKit() {
             return (
               <div
                 key={`${currentKit.id}-${index}`}
-                className={`flex items-center justify-between gap-2 py-2.5 ${
+                className={`flex items-center justify-between gap-2 py-1.5 ${
                   quantity === 0 ? "opacity-55" : ""
                 }`}
               >
-                <div className="flex min-w-0 items-center gap-2.5">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#FFF9D8] text-sm">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#FFF9D8] text-[13px]">
                     {item.icon}
                   </div>
                   <div className="min-w-0">
                     <h4 className="truncate text-xs font-bold leading-tight text-[#171717]">
                       {itemName}
                     </h4>
-                    <p className="mt-0.5 truncate text-[10px] text-[#171717]/60">
+                    <p className="truncate text-[9px] text-[#171717]/60">
                       {item.pack} · {formatMoney(item.price)}
                     </p>
                     {quantity > 1 && (
@@ -590,14 +591,14 @@ export default function BuildYourKit() {
         </div>
 
         {/* Price and savings */}
-        <div className="mt-3 border-t border-[#800020]/15 pt-3">
+        <div className="mt-2 border-t border-[#800020]/15 pt-2">
           <div className="flex items-end justify-between gap-3">
             <div>
               <p className="text-[9px] font-bold uppercase tracking-wider text-[#171717]/50">
                 {t("yourTotal")}
               </p>
               <div className="flex flex-wrap items-baseline gap-1.5">
-                <span className="text-xl font-black text-[#171717]">
+                <span className="text-2xl font-black leading-none tracking-tight text-[#171717]">
                   {formatMoney(totalPrice)}
                 </span>
                 {isStandardKit && (
@@ -623,11 +624,11 @@ export default function BuildYourKit() {
             </div>
 
             {isStandardKit && (
-              <div className="shrink-0 rounded-xl bg-[#800020] px-4 py-2 text-center text-white shadow-sm">
-                <span className="block text-[8px] font-extrabold uppercase tracking-wider opacity-80">
-                  {language === "hi" ? "आपकी बचत" : "You Save"}
+              <div className="shrink-0 rounded-xl border border-[#D4A84F] bg-[linear-gradient(135deg,#FFF1B8,#FFE29A)] px-3 py-1.5 text-center text-[#800020] shadow-sm ring-1 ring-[#D4A84F]/25">
+                <span className="block text-[8px] font-black uppercase tracking-wider">
+                  {language === "hi" ? "आपकी बचत" : "YOU SAVE"}
                 </span>
-                <span className="text-base font-black">
+                <span className="text-lg font-black leading-tight">
                   {formatMoney(totalSavings)}
                 </span>
               </div>
@@ -644,7 +645,7 @@ export default function BuildYourKit() {
                   ? `WhatsApp पर ${kitName} ऑर्डर करें, कुल ${formatMoney(totalPrice)}`
                   : `Order ${kitName} on WhatsApp, total ${formatMoney(totalPrice)}`
               }
-              className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full border-2 border-[#25D366] bg-transparent px-3 py-3 text-center text-xs font-extrabold leading-snug text-[#075E54] shadow-sm transition-colors duration-200 hover:border-[#128C7E] hover:bg-[#E8FFF0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#128C7E] active:scale-[0.99] sm:gap-2.5 sm:px-5 sm:py-3.5 sm:text-sm"
+              className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-[#25D366] bg-transparent px-3 py-2.5 text-center text-xs font-extrabold leading-snug text-[#075E54] shadow-sm transition-colors duration-200 hover:border-[#128C7E] hover:bg-[#E8FFF0] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#128C7E] active:scale-[0.99] sm:gap-2.5 sm:px-5 sm:py-3 sm:text-sm"
             >
               <Image
                 src="/Whatsapp-3d.svg"
@@ -670,7 +671,7 @@ export default function BuildYourKit() {
             </button>
           )}
 
-          <p className="mt-3 text-center text-[9px] leading-relaxed text-[#171717]/55">
+          <p className="mt-2 text-center text-[9px] leading-relaxed text-[#171717]/55">
             {language === "hi"
               ? "ऑर्डर WhatsApp पर कन्फर्म होगा। स्टॉक और डिलीवरी की पुष्टि स्टोर से करें।"
               : "Order is confirmed on WhatsApp. Please confirm stock and delivery with the store."}
@@ -681,7 +682,7 @@ export default function BuildYourKit() {
       {/* Bottom Section Divider */}
       <div
         aria-hidden="true"
-        className="mx-auto mt-8 h-px w-full bg-gradient-to-r from-transparent via-[#800020]/30 to-transparent"
+        className="mx-auto mt-4 h-px w-full bg-gradient-to-r from-transparent via-[#800020]/30 to-transparent"
       />
     </div>
   );

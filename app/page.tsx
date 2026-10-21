@@ -1,8 +1,6 @@
 
 import Navbar from "./components/Navbar";
 import HeroSection from "./components/HeroSection";
-import BrandMarquee from "./components/BrandMarquee";
-import FreeDeliveryBanner from "./components/FreeDeliveryBanner";
 import KitBuilder from "./components/KitBuilder";
 import Footer from "./components/Footer";
 
@@ -18,8 +16,6 @@ export default function Home() {
       {/* Hero Section */}
       <HeroSection />
 
-      {/* Single-line Animated Brand Marquee */}
-      <BrandMarquee />
 
       {/* Grocery Kit Builder */}
       <section
@@ -32,7 +28,7 @@ export default function Home() {
 
       {/* Free Delivery Banner */}
       <div className="py-3 sm:py-4">
-        <FreeDeliveryBanner />
+        
       </div>
 
       {/* Footer */}
