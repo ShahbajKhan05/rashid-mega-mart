@@ -1,5 +1,7 @@
+
 "use client";
 
+import { ArrowRight, MapPin, MessageCircle } from "lucide-react";
 import { useLanguage } from "./LanguageProvider";
 
 export default function HeroSection() {
@@ -9,109 +11,118 @@ export default function HeroSection() {
   return (
     <section
       id="top"
-      className="relative isolate flex min-h-[620px] w-full scroll-mt-14 items-center justify-center overflow-hidden bg-[#211413] sm:min-h-[680px] sm:scroll-mt-16 lg:min-h-[760px]"
+      className="relative isolate flex min-h-[560px] w-full scroll-mt-14 items-center overflow-hidden bg-[#241714] sm:min-h-[610px] sm:scroll-mt-16 lg:min-h-[660px]"
     >
       {/* Background image */}
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-20 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: "url('/hero.webp')",
-        }}
+        style={{ backgroundImage: "url('/hero.webp')" }}
       />
 
-      {/* Dark overlay */}
+      {/* Dark overlay for readable text */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-black/65"
+        className="absolute inset-0 -z-10 bg-gradient-to-r from-black/85 via-black/65 to-black/20"
       />
 
-      {/* Subtle burgundy and gold glow */}
+      {/* Extra readability on mobile */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,rgba(128,0,32,0.30),transparent_72%)]"
+        className="absolute inset-0 -z-10 bg-gradient-to-t from-black/45 via-transparent to-black/10 lg:hidden"
       />
 
-      {/* Centered hero content */}
-      <div className="mx-auto flex w-full max-w-5xl flex-col items-center px-5 pb-14 pt-24 text-center sm:px-8 sm:py-28 lg:px-12">
-        {/* Top badge */}
-        <span className="inline-flex max-w-full items-center justify-center rounded-full border border-[#D4A84F]/80 bg-black/25 px-4 py-2 text-[10px] font-extrabold tracking-[0.12em] text-[#FFE5A0] backdrop-blur-sm sm:px-5 sm:text-xs">
-          {isHindi
-            ? "आपकी अपनी किराना दुकान"
-            : "YOUR NEIGHBOURHOOD GROCERY STORE"}
-        </span>
+      {/* Main content */}
+      <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-24 lg:px-12 lg:py-28">
+        <div className="max-w-2xl">
 
-        {/* Main heading */}
-        <h1 className="mt-7 w-full text-[clamp(2.1rem,7.5vw,5rem)] font-extrabold leading-[1.15] tracking-tight text-white">
-          {isHindi ? (
-            <>
-              राशिद मेगा मार्ट
-              <span className="mt-2 block text-[#FFE19A] sm:mt-4">
-                हर घर की ज़रूरत
-              </span>
-            </>
-          ) : (
-            <>
-              Welcome to
-              <span className="mt-2 block text-[#FFE19A] sm:mt-4">
-                Rashid Mega Mart
-              </span>
-            </>
-          )}
-        </h1>
+          {/* Store location */}
+          <div className="flex items-center gap-2 text-xs font-semibold tracking-wide text-[#F0D49A] sm:text-sm">
+            <MapPin
+              size={16}
+              strokeWidth={1.8}
+              aria-hidden="true"
+            />
 
-        {/* Description */}
-        <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-white/90 sm:mt-7 sm:text-base sm:leading-8 md:text-lg">
-          {isHindi
-            ? "आपके परिवार की रोज़मर्रा की ज़रूरतों के लिए किराना सामान और किफायती वैल्यू किट्स — सब एक ही जगह।"
-            : "Discover everyday groceries and affordable value kits for your family, all in one convenient place."}
-        </p>
+            <span>
+              {isHindi
+                ? "घोघर, रीवा, मध्य प्रदेश"
+                : "Ghoghar, Rewa, Madhya Pradesh"}
+            </span>
+          </div>
 
-        {/* Centered buttons */}
-        <div className="mt-8 flex w-full max-w-xl flex-col items-stretch justify-center gap-3 min-[460px]:flex-row min-[460px]:items-center sm:mt-9 sm:gap-4">
-          <a
-            href="#kit"
-            className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl bg-[#800020] px-6 py-3.5 text-center text-sm font-extrabold text-white shadow-lg shadow-black/20 transition duration-200 hover:-translate-y-0.5 hover:bg-[#650019] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFE19A] sm:flex-none sm:px-8 sm:text-base"
-          >
-            {isHindi ? "किराना किट्स देखें" : "Explore Grocery Kits"}
-          </a>
+          {/* Main heading */}
+          <h1 className="mt-6 text-[clamp(2.6rem,7vw,5.2rem)] font-bold leading-[1.08] tracking-[-0.04em] text-white">
+            {isHindi ? (
+              <>
+                राशिद मेगा मार्ट
+                <span className="mt-3 block text-[#F0D49A]">
+                  आपके घर की ज़रूरतें
+                </span>
+              </>
+            ) : (
+              <>
+                Welcome to
+                <span className="mt-2 block text-[#F0D49A]">
+                  Rashid Mega Mart.
+                </span>
+              </>
+            )}
+          </h1>
 
-          <a
-            href="https://wa.me/918962531603"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-12 flex-1 items-center justify-center rounded-xl border border-[#FFF9D8]/70 bg-[#FFF9D8]/10 px-6 py-3.5 text-center text-sm font-bold text-white backdrop-blur-sm transition duration-200 hover:-translate-y-0.5 hover:bg-[#FFF9D8] hover:text-[#800020] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#FFE19A] sm:flex-none sm:px-8 sm:text-base"
-          >
-            {isHindi ? "WhatsApp पर संपर्क करें" : "Contact Us"}
-          </a>
-        </div>
-
-        {/* Store location */}
-        <p className="mt-7 flex items-center justify-center gap-2 text-xs font-medium leading-6 text-white/85 sm:mt-8 sm:text-sm">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            className="h-4 w-4 shrink-0 text-[#FFE19A]"
-            aria-hidden="true"
-          >
-            <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" />
-            <circle cx="12" cy="10" r="2.5" />
-          </svg>
-
-          <span>
+          {/* Description */}
+          <p className="mt-5 max-w-xl text-sm leading-7 text-white/85 sm:text-base sm:leading-8">
             {isHindi
-              ? "घोघर, रीवा, मध्य प्रदेश"
-              : "Ghoghar, Rewa, Madhya Pradesh"}
-          </span>
-        </p>
+              ? "रोज़मर्रा का किराना सामान और किफायती ग्रोसरी किट्स — आपकी खरीदारी के लिए, एक ही जगह।"
+              : "Everyday groceries and affordable grocery kits for your home, all in one convenient place."}
+          </p>
+
+          {/* Action buttons */}
+          <div className="mt-8 flex w-full max-w-md flex-col gap-3 min-[430px]:flex-row">
+
+            {/* Grocery kits button */}
+            <a
+              href="#kit"
+              className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-[#800020] px-5 py-3 text-sm font-bold text-white transition-colors duration-200 hover:bg-[#650019] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#F0D49A] sm:flex-none sm:px-6"
+            >
+              {isHindi ? "ग्रोसरी किट्स देखें" : "Explore Grocery Kits"}
+
+              <ArrowRight size={17} aria-hidden="true" />
+            </a>
+
+            {/* WhatsApp contact button */}
+            <a
+              href="https://wa.me/918962531603"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-white/55 bg-black/15 px-5 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-white hover:text-[#800020] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#F0D49A] sm:flex-none sm:px-6"
+            >
+              <MessageCircle size={17} aria-hidden="true" />
+
+              {isHindi ? "हमसे संपर्क करें" : "Contact Us"}
+            </a>
+          </div>
+
+          {/* Brand signature */}
+          <div className="mt-9 flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="h-px w-10 shrink-0 bg-[#D4A84F]"
+            />
+
+            <p className="text-[11px] font-medium tracking-wide text-white/70 sm:text-xs">
+              {isHindi
+                ? "आपकी अपनी किराना दुकान"
+                : "Your neighbourhood grocery store"}
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Bottom brand-colour accent */}
+      {/* Bottom brand accent */}
       <div
         aria-hidden="true"
-        className="absolute bottom-0 left-0 h-1 w-full bg-gradient-to-r from-[#800020] via-[#D4A84F] to-[#FFF9D8]"
+        className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-[#800020] via-[#D4A84F] to-[#800020]"
       />
     </section>
   );
