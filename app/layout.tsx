@@ -5,7 +5,7 @@ import { LanguageProvider } from "./components/LanguageProvider";
 import { CartProvider } from "./components/CartProvider";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import IntroLoader from "./components/IntroLoader"; // <-- Import kiya
+import IntroLoader from "./components/IntroLoader";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -24,14 +24,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={plusJakartaSans.variable}>
-      <body className={`${plusJakartaSans.className} antialiased bg-[#F3F0E6]`}>
+    // Added data-scroll-behavior="smooth"
+    <html lang="en" className={plusJakartaSans.variable} data-scroll-behavior="smooth">
+      <body className={`${plusJakartaSans.className} antialiased bg-[#FFFCF0]`}>
         <LanguageProvider>
           <CartProvider>
-            
-            {/* INTRO VIDEO LOADER YAHAN HAI */}
-            <IntroLoader /> 
-            
+            <IntroLoader />
             <Navbar />
             <div className="flex min-h-screen flex-col">
               {children}

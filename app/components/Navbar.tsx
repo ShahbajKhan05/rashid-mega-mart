@@ -15,6 +15,10 @@ import {
   Search,
   ChevronDown,
   Crosshair,
+  Info,
+  User,
+  Star,
+  Lock,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -161,7 +165,7 @@ export default function Navbar() {
             </button>
           </div>
 
-          <div className="relative flex-1 max-w-xl">
+          <div className="relative flex-1 max-w-lg">
             <form onSubmit={handleSearchSubmit} className="relative flex items-center">
               <Search size={18} className="absolute left-4 text-gray-400" />
               <input
@@ -174,13 +178,25 @@ export default function Navbar() {
             </form>
           </div>
 
-          <div className="flex items-center gap-6">
-            <nav className="flex items-center gap-5">
+          <div className="flex items-center gap-4">
+            <nav className="flex items-center gap-4">
               <a href="/" className="text-sm font-bold text-gray-700 hover:text-[#800020]">Home</a>
               <a href="#kit" className="text-sm font-bold text-gray-700 hover:text-[#800020]">Kits</a>
               <a href="#categories" className="text-sm font-bold text-gray-700 hover:text-[#800020]">Categories</a>
+              <a href="/about" className="text-sm font-bold text-gray-700 hover:text-[#800020]">About</a>
+              <a href="/loyalty" className="text-sm font-bold text-gray-700 hover:text-[#800020]">Rewards</a>
             </nav>
+            
             <LanguageToggle language={language} onSelect={() => toggleLanguage()} />
+
+            <a 
+              href="/login" 
+              className="flex h-11 items-center gap-1.5 rounded-xl border-2 border-[#800020]/10 px-4 text-sm font-bold text-[#800020] transition hover:border-[#800020]/30 hover:bg-[#800020]/5"
+            >
+              <User size={18} /> 
+              {isHindi ? "लॉगिन" : "Login"}
+            </a>
+
             <button onClick={openCart} className="flex h-11 items-center gap-2 rounded-xl bg-[#800020] px-5 text-white shadow-md hover:bg-[#600018]">
               <ShoppingCart size={18} />
               <span className="text-sm font-bold">Cart</span>
@@ -188,18 +204,27 @@ export default function Navbar() {
                 {cartLabelCount}
               </span>
             </button>
+
+            {/* STAFF LOGIN (Hidden Lock) */}
+            <a 
+              href="/loyalty/staff" 
+              title="Staff Access"
+              className="ml-1 flex h-11 w-11 items-center justify-center rounded-xl bg-gray-50 text-gray-300 transition-colors hover:bg-[#800020] hover:text-white"
+            >
+              <Lock size={16} />
+            </a>
           </div>
         </div>
 
         {/* =========================================
-            MOBILE HEADER
+            MOBILE HEADER (Compact & Perfect Spacing)
             ========================================= */}
         <div className="flex flex-col px-4 pb-3 pt-3 lg:hidden">
           
           {/* Row 1: Menu, Logo, Location, Cart */}
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-3">
-              <button onClick={() => setMenuOpen(true)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-50 text-[#800020]">
+            <div className="flex items-center gap-2">
+              <button onClick={() => setMenuOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-50 text-[#800020]">
                 <Menu size={20} />
               </button>
 
@@ -216,13 +241,19 @@ export default function Navbar() {
               </a>
             </div>
 
-            <button onClick={openCart} className="relative flex h-9 items-center gap-1.5 rounded-xl bg-[#800020] px-3 text-white shadow-sm">
-              <ShoppingCart size={16} />
-              <span className="text-xs font-bold">Cart</span>
-              <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#D4A84F] px-1 text-[9px] font-black text-[#35120D]">
-                {cartLabelCount}
-              </span>
-            </button>
+            <div className="flex items-center gap-2">
+              <a href="/login" className="flex h-9 w-9 items-center justify-center rounded-xl bg-gray-50 text-[#800020] border border-gray-200">
+                <User size={18} />
+              </a>
+
+              <button onClick={openCart} className="relative flex h-9 items-center gap-1.5 rounded-xl bg-[#800020] px-3 text-white shadow-sm">
+                <ShoppingCart size={16} />
+                <span className="text-xs font-bold">Cart</span>
+                <span className="flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#D4A84F] px-1 text-[9px] font-black text-[#35120D]">
+                  {cartLabelCount}
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* Row 2: Search Bar + Language Toggle */}
@@ -235,7 +266,6 @@ export default function Navbar() {
               <span className="text-xs font-medium truncate">{isHindi ? "आटा, तेल खोजें..." : "Search atta, oil..."}</span>
             </button>
             
-            {/* Mobile Language Toggle */}
             <div className="shrink-0">
               <LanguageToggle language={language} onSelect={() => toggleLanguage()} />
             </div>
@@ -243,8 +273,7 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* Add a spacer to push content down because header is fixed */}
-      <div className="h-[105px] lg:h-[72px]" />
+      <div className="h-[115px] lg:h-[72px]" />
 
       {/* LOCATION MODAL */}
       <AnimatePresence>
@@ -263,6 +292,10 @@ export default function Navbar() {
               </div>
               
               <div className="p-4 sm:p-5">
+                <div className="mb-4 flex items-center gap-2 rounded-lg bg-[#138047]/10 p-2 text-xs font-bold text-[#138047]">
+                  <Info size={14} /> Delivery available in 30 mins in this area.
+                </div>
+
                 <button
                   onClick={handleLiveLocation}
                   disabled={isLocating}
@@ -366,9 +399,20 @@ export default function Navbar() {
                 <a href="/" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl p-3 hover:bg-gray-50"><House size={20} className="text-[#800020]" /><span className="font-bold text-gray-800">{isHindi ? "होम" : "Home"}</span></a>
                 <a href="#kit" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl p-3 hover:bg-gray-50"><Package size={20} className="text-[#800020]" /><span className="font-bold text-gray-800">{isHindi ? "किट्स" : "Kits"}</span></a>
                 <a href="#categories" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl p-3 hover:bg-gray-50"><LayoutGrid size={20} className="text-[#800020]" /><span className="font-bold text-gray-800">{isHindi ? "कैटेगरी" : "Categories"}</span></a>
+                <a href="/about" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl p-3 hover:bg-gray-50"><User size={20} className="text-[#800020]" /><span className="font-bold text-gray-800">{isHindi ? "हमारे बारे में" : "About Us"}</span></a>
+                <a href="/loyalty" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 rounded-xl p-3 hover:bg-gray-50"><Star size={20} className="text-[#800020]" /><span className="font-bold text-gray-800">{isHindi ? "रिवॉर्ड्स" : "Rewards"}</span></a>
               </div>
 
-              <div className="mt-auto pt-6 border-t border-gray-100">
+              <div className="mt-auto pt-6 border-t border-gray-100 flex flex-col gap-3">
+                <a href="/login" onClick={() => setMenuOpen(false)} className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#800020] py-3 text-sm font-bold text-white">
+                  <User size={18} /> {isHindi ? "लॉगिन करें" : "Login / Sign Up"}
+                </a>
+                
+                {/* STAFF LOGIN HIDDEN IN MENU */}
+                <a href="/loyalty/staff" onClick={() => setMenuOpen(false)} className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 py-3 text-sm font-bold text-gray-400">
+                  <Lock size={16} /> {isHindi ? "स्टाफ लॉगिन" : "Staff Access"}
+                </a>
+
                 <LanguageToggle language={language} onSelect={() => toggleLanguage()} />
               </div>
             </motion.div>

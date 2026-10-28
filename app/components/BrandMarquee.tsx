@@ -8,7 +8,7 @@ type Brand = { name: string; src: string; };
 
 const brands: Brand[] = [
   { name: "Aashirvaad", src: "https://anandoo.in/brand_icons/aashirvaad.png" },
-  { name: "Fortune", src: "https://www.indiantelevision.com/sites/default/files/images/tv-images/2020/03/18/fortune.jpg" },
+  { name: "Fortune", src: "/Logo.png" }, 
   { name: "Tata Sampann", src: "https://www.tataconsumer.com/sites/g/files/gfwrlq316/files/13_Tata-Sampann_600x567.png" },
   { name: "India Gate", src: "https://cdn.tasteatlas.com/images/productmakers/a4c39d73df0247cc8f7a9e9faa196605.png?mw=670" },
   { name: "MDH", src: "https://www.agnifoods.co.uk/pub/media/codazon_cache/brand/400x400/agni_skin/brand-logo/mdh-logo.png" },

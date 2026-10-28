@@ -3,16 +3,15 @@
 import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger"; // Import added
 import {
-  MapPin,
-  Phone,
-  Mail,
-  ChevronRight,
-  X,
-  ShieldCheck,
-  ArrowRight,
+  MapPin, Phone, Mail, ChevronRight, X, ShieldCheck, ArrowRight, Info,
 } from "lucide-react";
 import { useLanguage } from "./LanguageProvider";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger); // Register added
+}
 
 const PHONE = "918962531603";
 const PHONE_DISPLAY = "+91 89625 31603";
@@ -27,12 +26,8 @@ const SOCIAL_LINKS = {
 };
 
 type SocialIconName = "facebook" | "instagram" | "youtube";
-type Notice = {
-  title: string;
-  content: React.ReactNode;
-};
+type Notice = { title: string; content: React.ReactNode; };
 
-// REAL SVG ICONS FOR SOCIALS
 function SocialIcon({ name, className = "h-5 w-5" }: { name: SocialIconName; className?: string }) {
   if (name === "facebook") {
     return (
@@ -50,7 +45,6 @@ function SocialIcon({ name, className = "h-5 w-5" }: { name: SocialIconName; cla
       </svg>
     );
   }
-  // YouTube
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
       <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
@@ -59,7 +53,6 @@ function SocialIcon({ name, className = "h-5 w-5" }: { name: SocialIconName; cla
   );
 }
 
-// REAL WHATSAPP ICON
 function WhatsAppIcon({ className = "h-5 w-5" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -75,26 +68,27 @@ export default function Footer() {
 
   const [year, setYear] = useState("2026");
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setYear(String(new Date().getFullYear()));
   }, []);
 
-  // GSAP Footer Reveal Animation
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ".footer-animate",
-        { y: 50, opacity: 0 },
+        { y: 30, opacity: 0 },
         {
           y: 0,
           opacity: 1,
-          duration: 0.8,
-          stagger: 0.1,
-          ease: "power3.out",
+          duration: 0.6,
+          stagger: 0.08,
+          ease: "power2.out",
           scrollTrigger: {
             trigger: footerRef.current,
-            start: "top 90%",
+            start: "top 95%",
           },
         }
       );
@@ -102,12 +96,18 @@ export default function Footer() {
     return () => ctx.revert();
   }, []);
 
-  // Lock scroll when modal is open
   useEffect(() => {
     document.body.style.overflow = notice ? "hidden" : "unset";
   }, [notice]);
 
+  const showToast = (message: string) => {
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    setToastMessage(message);
+    toastTimeoutRef.current = setTimeout(() => setToastMessage(null), 2500);
+  };
+
   const openContactModal = () => {
+    showToast(isHindi ? "संपर्क विवरण खुला..." : "Opening contact details...");
     setNotice({
       title: isHindi ? "संपर्क करें" : "Contact Us",
       content: (
@@ -142,6 +142,7 @@ export default function Footer() {
   };
 
   const openPrivacyModal = () => {
+    showToast(isHindi ? "गोपनीयता नीति खुली..." : "Opening Privacy Policy...");
     setNotice({
       title: isHindi ? "गोपनीयता नीति" : "Privacy Policy",
       content: (
@@ -155,6 +156,7 @@ export default function Footer() {
   };
 
   const openTermsModal = () => {
+    showToast(isHindi ? "नियम और शर्तें खुली..." : "Opening Terms & Conditions...");
     setNotice({
       title: isHindi ? "नियम और शर्तें" : "Terms & Conditions",
       content: (
@@ -170,146 +172,138 @@ export default function Footer() {
   return (
     <>
       <footer ref={footerRef} id="contact" className="relative border-t-2 border-[#D4A84F] bg-[#FFF9D8] text-[#171717] overflow-hidden">
-        
         <div className="absolute top-0 right-0 h-64 w-64 rounded-full bg-[#D4A84F]/10 blur-[80px] pointer-events-none" />
-
-        <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8 relative z-10">
+        <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 relative z-10">
           
-          {/* Brand Header */}
-          <div className="footer-animate mb-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#800020]/10 pb-6">
+          <div className="footer-animate mb-8 flex flex-col sm:flex-row items-center justify-between gap-3 border-b border-[#800020]/10 pb-4">
             <div>
-              <h2 className="text-2xl font-black tracking-tight text-[#800020]">Rashid Mega Mart</h2>
-              <p className="mt-1 text-sm text-[#5C4B42] max-w-md">
-                {isHindi ? "आपकी रोज़मर्रा की ज़रूरतों के लिए भरोसेमंद किराना और वैल्यू किट्स।" : "Everyday groceries and value kits for your family's daily needs."}
+              <h2 className="text-xl font-black tracking-tight text-[#800020]">Rashid Mega Mart</h2>
+              <p className="text-xs text-[#5C4B42]">
+                {isHindi ? "आपकी रोज़मर्रा की ज़रूरतों के लिए भरोसेमंद किराना।" : "Everyday groceries for your family's daily needs."}
               </p>
             </div>
-            <div className="flex items-center gap-2 rounded-lg bg-white/50 px-4 py-2 border border-[#800020]/10 shadow-sm">
-              <ShieldCheck size={20} className="text-[#138047]" />
+            <div className="flex items-center gap-1.5 rounded-md bg-white/50 px-3 py-1.5 border border-[#800020]/10">
+              <ShieldCheck size={16} className="text-[#138047]" />
               <div>
-                <p className="text-[9px] font-black uppercase text-gray-500 tracking-wider">Certified Store</p>
-                <p className="text-xs font-bold text-[#30251F]">FSSAI: {FSSAI_NUMBER}</p>
+                <p className="text-[8px] font-black uppercase text-gray-500 tracking-wider">Certified Store</p>
+                <p className="text-[10px] font-bold text-[#30251F]">FSSAI: {FSSAI_NUMBER}</p>
               </div>
             </div>
           </div>
 
-          {/* Main Grid */}
-          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             
-            {/* Contact */}
             <section className="footer-animate">
-              <h3 className="mb-5 text-lg font-black text-[#800020]">Contact Us</h3>
-              <div className="flex flex-col gap-4">
-                <a href="https://maps.google.com" target="_blank" className="group flex items-start gap-3 text-sm text-gray-600 hover:text-[#800020]">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#800020] shadow-sm group-hover:bg-[#800020] group-hover:text-white transition-colors">
-                    <MapPin size={20} />
+              <h3 className="mb-3 text-sm font-black text-[#800020] uppercase tracking-wider">Contact Us</h3>
+              <div className="flex flex-col gap-2">
+                <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ADDRESS)}`} target="_blank" className="group flex items-center gap-2 text-xs text-gray-600 hover:text-[#800020] transition-colors">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-[#800020] shadow-sm">
+                    <MapPin size={14} />
                   </span>
-                  <span className="pt-2">{ADDRESS}</span>
+                  <span className="truncate w-[180px]">{ADDRESS}</span>
                 </a>
-                <a href={`tel:+${PHONE}`} className="group flex items-center gap-3 text-sm text-gray-600 hover:text-[#800020]">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#800020] shadow-sm group-hover:bg-[#800020] group-hover:text-white transition-colors">
-                    <Phone size={20} />
+                <a href={`tel:+${PHONE}`} className="group flex items-center gap-2 text-xs text-gray-600 hover:text-[#800020] transition-colors">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-[#800020] shadow-sm">
+                    <Phone size={14} />
                   </span>
                   <span className="font-bold">{PHONE_DISPLAY}</span>
                 </a>
-                <a href={`mailto:${EMAIL}`} className="group flex items-center gap-3 text-sm text-gray-600 hover:text-[#800020]">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#800020] shadow-sm group-hover:bg-[#800020] group-hover:text-white transition-colors">
-                    <Mail size={20} />
+                <a href={`mailto:${EMAIL}`} className="group flex items-center gap-2 text-xs text-gray-600 hover:text-[#800020] transition-colors">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-md bg-white text-[#800020] shadow-sm">
+                    <Mail size={14} />
                   </span>
-                  <span className="break-all">{EMAIL}</span>
+                  <span className="truncate w-[180px]">{EMAIL}</span>
                 </a>
               </div>
             </section>
 
-            {/* Quick Links */}
             <section className="footer-animate">
-              <h3 className="mb-5 text-lg font-black text-[#800020]">Quick Links</h3>
-              <nav className="flex flex-col gap-3">
+              <h3 className="mb-3 text-sm font-black text-[#800020] uppercase tracking-wider">Quick Links</h3>
+              <nav className="flex flex-col gap-2">
                 {[
                   { label: "Home", href: "/" },
                   { label: "Grocery Kits", href: "#kit" },
                   { label: "About Us", href: "#about" },
                 ].map((link) => (
-                  <a key={link.label} href={link.href} className="group flex items-center gap-2 text-sm text-gray-600 hover:text-[#800020]">
-                    <ChevronRight size={16} className="text-[#D4A84F] group-hover:translate-x-1 transition-transform" />
-                    {link.label}
-                  </a>
+                  <div key={link.label} className="relative group w-fit">
+                    <a href={link.href} className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-[#800020]">
+                      <ChevronRight size={14} className="text-[#D4A84F] group-hover:translate-x-0.5 transition-transform" />
+                      {link.label}
+                    </a>
+                  </div>
                 ))}
-                <button onClick={openContactModal} className="group flex items-center gap-2 text-sm text-gray-600 hover:text-[#800020]">
-                  <ChevronRight size={16} className="text-[#D4A84F] group-hover:translate-x-1 transition-transform" /> Contact
+                <button onClick={openContactModal} className="group flex items-center gap-1.5 text-xs text-gray-600 hover:text-[#800020] w-fit">
+                  <ChevronRight size={14} className="text-[#D4A84F] group-hover:translate-x-0.5 transition-transform" /> Contact
                 </button>
-                <button onClick={openPrivacyModal} className="group flex items-center gap-2 text-sm text-gray-600 hover:text-[#800020]">
-                  <ChevronRight size={16} className="text-[#D4A84F] group-hover:translate-x-1 transition-transform" /> Privacy Policy
+                <button onClick={openPrivacyModal} className="group flex items-center gap-1.5 text-xs text-gray-600 hover:text-[#800020] w-fit">
+                  <ChevronRight size={14} className="text-[#D4A84F] group-hover:translate-x-0.5 transition-transform" /> Privacy Policy
                 </button>
-                <button onClick={openTermsModal} className="group flex items-center gap-2 text-sm text-gray-600 hover:text-[#800020]">
-                  <ChevronRight size={16} className="text-[#D4A84F] group-hover:translate-x-1 transition-transform" /> Terms & Conditions
+                <button onClick={openTermsModal} className="group flex items-center gap-1.5 text-xs text-gray-600 hover:text-[#800020] w-fit">
+                  <ChevronRight size={14} className="text-[#D4A84F] group-hover:translate-x-0.5 transition-transform" /> Terms
                 </button>
               </nav>
             </section>
 
-            {/* Socials */}
             <section className="footer-animate">
-              <h3 className="mb-5 text-lg font-black text-[#800020]">Follow Us</h3>
-              <div className="flex flex-wrap gap-3">
-                <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#1877F2] shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
-                  <SocialIcon name="facebook" className="h-6 w-6" />
+              <h3 className="mb-3 text-sm font-black text-[#800020] uppercase tracking-wider">Follow Us</h3>
+              <div className="flex flex-wrap gap-2">
+                <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#1877F2] shadow-sm hover:-translate-y-0.5 transition-all">
+                  <SocialIcon name="facebook" className="h-4 w-4" />
                 </a>
-                <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#E4405F] shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
-                  <SocialIcon name="instagram" className="h-6 w-6" />
+                <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#E4405F] shadow-sm hover:-translate-y-0.5 transition-all">
+                  <SocialIcon name="instagram" className="h-4 w-4" />
                 </a>
-                <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#FF0000] shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
-                  <SocialIcon name="youtube" className="h-6 w-6" />
+                <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#FF0000] shadow-sm hover:-translate-y-0.5 transition-all">
+                  <SocialIcon name="youtube" className="h-4 w-4" />
                 </a>
-                <a href={`https://wa.me/${PHONE}`} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#25D366] shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
-                  <WhatsAppIcon className="h-6 w-6" />
+                <a href={`https://wa.me/${PHONE}`} target="_blank" rel="noopener noreferrer" className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#25D366] shadow-sm hover:-translate-y-0.5 transition-all">
+                  <WhatsAppIcon className="h-4 w-4" />
                 </a>
               </div>
-              <p className="mt-4 text-xs text-gray-500 leading-relaxed">Connect with us for store information, enquiries and orders.</p>
             </section>
 
-            {/* Logo */}
             <section className="footer-animate flex flex-col items-center justify-center text-center">
-              <Image src="/Logo.png" alt="Logo" width={150} height={150} className="object-contain mb-3" />
-              <p className="text-xs font-black text-[#800020] tracking-wider uppercase">Your Neighbourhood Store</p>
-              <div className="mt-3 h-1 w-12 rounded-full bg-[#D4A84F]" />
+              <Image src="/Logo.png" alt="Logo" width={100} height={100} className="object-contain mb-1" />
+              <p className="text-[10px] font-black text-[#800020] tracking-wider uppercase">Your Neighbourhood Store</p>
+              <div className="mt-1.5 h-0.5 w-8 rounded-full bg-[#D4A84F]" />
             </section>
           </div>
 
-          {/* Bottom Bar */}
-          <div className="footer-animate mt-12 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-[#800020]/10 pt-6">
-            <p className="text-xs text-gray-500">
+          <div className="footer-animate mt-8 flex flex-col md:flex-row items-center justify-between gap-2 border-t border-[#800020]/10 pt-4">
+            <p className="text-[10px] text-gray-500">
               © {year} <strong className="text-[#800020]">Rashid Mega Mart.</strong> All Rights Reserved.
             </p>
-            <p className="text-xs text-gray-400 flex items-center gap-1">
-              Crafted with <span className="text-red-500">❤️</span> by <a href="#" className="font-bold text-[#800020]">Noor Technologies</a>
+            <p className="text-[10px] text-gray-400 flex items-center gap-1">
+              Crafted by <a href="#" className="font-bold text-[#800020]">Noor Technologies</a>
             </p>
           </div>
         </div>
       </footer>
 
-      {/* AWARD-WINNING MODAL (Popup) */}
+      {toastMessage && (
+        <div className="fixed top-20 left-1/2 z-[10000] -translate-x-1/2 animate-in slide-in-from-top-5 fade-in duration-300">
+          <div className="flex items-center gap-2 rounded-full bg-gray-900 px-4 py-2 text-xs font-bold text-white shadow-xl">
+            <Info size={14} className="text-[#D4A84F]" />
+            {toastMessage}
+          </div>
+        </div>
+      )}
+
       {notice && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={() => setNotice(null)}>
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in duration-300"
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-100 bg-[#FFF9D8] p-5">
-              <h3 className="text-xl font-black text-[#800020]">{notice.title}</h3>
-              <button onClick={() => setNotice(null)} className="rounded-full bg-white p-2 text-gray-500 hover:text-[#800020] shadow-sm">
-                <X size={18} />
+          <div onClick={(e) => e.stopPropagation()} className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div className="flex items-center justify-between border-b border-gray-100 bg-[#FFF9D8] p-4">
+              <h3 className="text-base font-black text-[#800020]">{notice.title}</h3>
+              <button onClick={() => setNotice(null)} className="rounded-full bg-white p-1.5 text-gray-500 hover:text-[#800020] shadow-sm">
+                <X size={16} />
               </button>
             </div>
-            
-            {/* Content */}
-            <div className="p-6 max-h-[60vh] overflow-y-auto">
+            <div className="p-5 max-h-[60vh] overflow-y-auto text-sm">
               {notice.content}
             </div>
-
-            {/* Footer Action */}
-            <div className="border-t border-gray-100 p-4 bg-gray-50 flex justify-end">
-              <button onClick={() => setNotice(null)} className="rounded-xl bg-[#800020] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#600018] transition-colors flex items-center gap-2">
-                Got it <ArrowRight size={16} />
+            <div className="border-t border-gray-100 p-3 bg-gray-50 flex justify-end">
+              <button onClick={() => setNotice(null)} className="rounded-lg bg-[#800020] px-4 py-2 text-xs font-bold text-white hover:bg-[#600018] transition-colors flex items-center gap-1.5">
+                Got it <ArrowRight size={14} />
               </button>
             </div>
           </div>

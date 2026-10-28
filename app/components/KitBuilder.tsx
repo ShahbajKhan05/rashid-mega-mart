@@ -3,8 +3,12 @@
 import { useMemo, useState } from "react";
 import { useLanguage } from "./LanguageProvider";
 import { useCart } from "./CartProvider";
-import { products, kits, categoryOptions, type Product } from "./data";
-import { ArrowUpRight, ShoppingBag, X, Plus, Minus, Search, Crown, Sparkles } from "lucide-react";
+import { products, categoryOptions, type Product } from "./data";
+import { 
+  ArrowUpRight, ShoppingBag, X, Plus, Minus, Search, Crown, Sparkles, 
+  Check, Star, Flame, Clock, BadgePercent, ShoppingBasket, LayoutGrid, 
+  Users, Truck, ArrowRight 
+} from "lucide-react";
 
 const MIN_TOTAL = 499; 
 const MAX_TOTAL = 9999;
@@ -13,12 +17,67 @@ function money(price: number) {
   return `₹${price.toLocaleString("en-IN")}`;
 }
 
+// Custom Kit Data mapped from your existing data.ts (for the new design)
+const newKitsDesign = [
+  {
+    id: "family-ration",
+    badgeText: "PREMIUM",
+    badgeIcon: Crown,
+    theme: "bg-[#FCEAD2]", // Peach
+    textColor: "text-[#800020]",
+    discount: "25% OFF",
+    titleEn: "Family Ration Saver Kit",
+    titleHi: "फैमिली राशन सेवर किट",
+    descEn: "Full month ration for the whole family.",
+    descHi: "पूरे महीने का राशन पूरे परिवार के लिए।",
+    featuresEn: ["Atta, Rice, Dal", "Oil, Spices, Salt", "Daily Essentials", "15+ Products"],
+    featuresHi: ["आटा, चावल, दाल", "तेल, मसाले, नमक", "रोज़मर्रा की ज़रूरतें", "15+ प्रोडक्ट्स"],
+    price: 1999,
+    originalPrice: 2650,
+    image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&q=80",
+  },
+  {
+    id: "family-saver",
+    badgeText: "BEST VALUE",
+    badgeIcon: Star,
+    theme: "bg-[#DCEBDB]", // Mint Green
+    textColor: "text-[#138047]",
+    discount: "18% OFF",
+    titleEn: "Family Saver Kit",
+    titleHi: "फैमिली सेवर किट",
+    descEn: "Perfect pack for a complete family.",
+    descHi: "पूरे परिवार के लिए एकदम परफेक्ट पैक।",
+    featuresEn: ["Kitchen Staples", "Breakfast & Snacks", "Personal Care", "12+ Products"],
+    featuresHi: ["रसोई की ज़रूरतें", "नाश्ता और स्नैक्स", "पर्सनल केयर", "12+ प्रोडक्ट्स"],
+    price: 1599,
+    originalPrice: 1950,
+    image: "https://images.unsplash.com/photo-1578916171728-46686eac8d58?w=600&q=80",
+  },
+  {
+    id: "family-essential",
+    badgeText: "POPULAR",
+    badgeIcon: Flame,
+    theme: "bg-[#F7DFE2]", // Pink
+    textColor: "text-[#800020]",
+    discount: "11% OFF",
+    titleEn: "Family Essentials Kit",
+    titleHi: "फैमिली एसेंशियल्स किट",
+    descEn: "Daily essentials at a great value.",
+    descHi: "रोज़मर्रा की ज़रूरतें बेहतरीन कीमत पर।",
+    featuresEn: ["Daily Cooking Needs", "Snacks & Beverages", "Cleaning Essentials", "10+ Products"],
+    featuresHi: ["रोज़ाना खाना बनाने की ज़रूरतें", "स्नैक्स और बेवरेज", "सफाई का सामान", "10+ प्रोडक्ट्स"],
+    price: 999,
+    originalPrice: 1120,
+    image: "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=600&q=80",
+  },
+];
+
 export default function KitBuilder() {
   const { language } = useLanguage();
   const isHindi = language === "hi";
   const { addToCart, addCustomRequest, openCart } = useCart();
 
-  const [activeKit, setActiveKit] = useState<typeof kits[0] | null>(null);
+  const [activeKit, setActiveKit] = useState<any>(null);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
@@ -46,9 +105,24 @@ export default function KitBuilder() {
     return matchesCategory && matchesSearch;
   });
 
-  function openKit(kit: typeof kits[0]) {
+  function openKit(kit: typeof newKitsDesign[0]) {
     setActiveKit(kit);
-    setQuantities({ ...kit.items }); 
+    const defaultItems: Record<string, number> = {};
+    if (kit.id === "family-ration") {
+      defaultItems["aashirvaad-atta"] = 2;
+      defaultItems["india-gate-rice"] = 2;
+      defaultItems["fortune-oil"] = 2;
+      defaultItems["tata-salt"] = 1;
+    } else if (kit.id === "family-saver") {
+      defaultItems["aashirvaad-atta"] = 1;
+      defaultItems["fortune-oil"] = 1;
+      defaultItems["maggi"] = 4;
+    } else {
+      defaultItems["aashirvaad-atta"] = 1;
+      defaultItems["tata-salt"] = 1;
+    }
+    
+    setQuantities(defaultItems); 
     setCategory("all"); 
     setCustomItems([]);
     setSearch("");
@@ -123,87 +197,118 @@ export default function KitBuilder() {
   }
 
   return (
-    <section id="kit" className="scroll-mt-20 bg-[#FFFCF0] px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <section id="kit" className="scroll-mt-20 bg-[#FFFCF0] px-4 py-12 sm:px-6 lg:px-8 overflow-hidden">
+      
+      <div className="mx-auto max-w-7xl relative">
         
-        {/* Header */}
-        <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#D4A84F]/40 bg-[#FFF4D6] px-3 py-1.5 text-[10px] font-bold text-[#8A6B29] shadow-sm sm:text-xs">
-              <Sparkles size={14} /> {isHindi ? "एक्सक्लूसिव किट्स" : "EXCLUSIVE KITS"}
+        {/* Decorative Leaves */}
+        <div className="absolute -left-10 top-0 text-[#138047]/20 rotate-45 pointer-events-none">
+          <Sparkles size={100} />
+        </div>
+
+        {/* HERO HEADER */}
+        <div className="relative mb-12 flex flex-col items-center text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#D4A84F]/50 bg-[#FFF4D6] px-4 py-1.5 shadow-sm">
+            <Crown size={16} className="text-[#D4A84F]" />
+            <span className="text-[11px] font-black uppercase tracking-widest text-[#8A6B29]">
+              {isHindi ? "स्मार्ट शॉपिंग किट्स" : "SMART SHOPPING KITS"}
             </span>
-            <h2 className="mt-3 text-2xl font-black tracking-tight text-[#800020] sm:text-4xl">
-              {isHindi ? "राशिद मेगा मार्ट की खास किट्स" : "Rashid Mega Mart Special Kits"}
-            </h2>
-            <p className="mt-1.5 text-sm text-[#76665C]">
-              {isHindi ? "आपके परिवार के लिए पूरा राशन, एक ही किट में।" : "Complete ration for your family in one kit."}
-            </p>
+          </div>
+          
+          <h2 className="mt-4 text-4xl font-black tracking-tight text-[#800020] sm:text-5xl lg:text-6xl">
+            {isHindi ? "राशिद मेगा मार्ट स्पेशल किट्स" : "Rashid Mega Mart Special Kits"}
+          </h2>
+          
+          <p className="mt-4 max-w-2xl text-sm font-medium leading-relaxed text-[#68574A] sm:text-base">
+            {isHindi 
+              ? "आपके परिवार की हर ज़रूरत एक ही किट में। चुने हुए प्रोडक्ट्स, बेहतर वैल्यू और खरीदारी का आसान तरीका।" 
+              : "Everything your family needs in one kit. Handpicked products, better value and a simpler way to shop."}
+          </p>
+
+          {/* 4 Icons Row */}
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 sm:gap-8 lg:gap-12">
+            {[
+              { icon: Clock, titleEn: "Save Time", descEn: "Ready-to-shop kits", titleHi: "समय बचाएं", descHi: "तैयार किट्स" },
+              { icon: BadgePercent, titleEn: "Better Value", descEn: "Special bundle prices", titleHi: "बेहतर वैल्यू", descHi: "स्पेशल बंडल कीमतें" },
+              { icon: ShoppingBasket, titleEn: "Daily Essentials", descEn: "Trusted brands", titleHi: "रोज़मर्रा की ज़रूरतें", descHi: "भरोसेमंद ब्रांड्स" },
+              { icon: Star, titleEn: "For Every Family", descEn: "Customised for your needs", titleHi: "हर परिवार के लिए", descHi: "आपकी ज़रूरत के हिसाब से" },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2 text-left">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#FFF9D8] text-[#D4A84F] shadow-sm">
+                  <item.icon size={16} />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-[#30251F]">{isHindi ? item.titleHi : item.titleEn}</p>
+                  <p className="text-[10px] text-[#76665C]">{isHindi ? item.descHi : item.descEn}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* 4 PREMIUM KITS GRID */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {kits.map((kit) => {
-            const discountPercent = Math.round(((kit.originalPrice - kit.price) / kit.originalPrice) * 100);
-            
+        {/* 3 PREMIUM KITS GRID */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+          {newKitsDesign.map((kit) => {
+            const Icon = kit.badgeIcon;
             return (
               <div
                 key={kit.id}
                 onClick={() => openKit(kit)}
-                className={`group relative flex min-h-[260px] cursor-pointer flex-col justify-between overflow-hidden rounded-[24px] border border-white/60 bg-gradient-to-br p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_15px_40px_rgb(128,0,32,0.15)] ${kit.bg}`}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-[32px] p-6 shadow-[0_10px_40px_rgba(0,0,0,0.08)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.15)] ${kit.theme}`}
               >
-                {/* Background Image Blend */}
-                <div className="absolute inset-y-0 right-0 z-0 w-[65%] overflow-hidden">
-                  <img
-                    src={kit.image}
-                    alt={kit.titleEn}
-                    className="h-full w-full object-cover opacity-95 transition-transform duration-700 group-hover:scale-110"
-                    style={{
-                      maskImage: "linear-gradient(to right, transparent 0%, black 50%, black 100%)",
-                      WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 50%, black 100%)",
-                    }}
-                  />
-                  {/* Dark overlay for text readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                <div className="relative z-20 flex items-start justify-between w-full mb-4">
+                  <div className="flex items-center gap-1.5 rounded-full bg-white/60 px-3 py-1 backdrop-blur-sm shadow-sm">
+                    <Icon size={12} className={kit.textColor} />
+                    <span className={`text-[10px] font-black uppercase tracking-wider ${kit.textColor}`}>{kit.badgeText}</span>
+                  </div>
+                  <div className="rounded-full bg-[#800020] px-3 py-1 text-[10px] font-black text-white shadow-sm">
+                    {kit.discount}
+                  </div>
                 </div>
 
-                {/* Decorative Circle */}
-                <div className="pointer-events-none absolute -right-8 -top-8 z-0 h-32 w-32 rounded-full border border-white/40 bg-white/20 backdrop-blur-md" />
-
-                {/* Top Section: Badges & Title */}
-                <div className="relative z-10 w-[85%]">
-                  <div className="mb-2 flex flex-wrap items-center gap-1.5">
-                    {/* Crown Icon Badge */}
-                    <span className="inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-[#D4A84F] to-[#B88A2F] px-2 py-1 text-[9px] font-black uppercase text-white shadow-sm">
-                      <Crown size={10} /> Premium
-                    </span>
-                    {discountPercent > 0 && (
-                      <span className="inline-flex rounded-md bg-[#800020] px-2 py-1 text-[9px] font-black text-white shadow-sm">
-                        {discountPercent}% OFF
-                      </span>
-                    )}
-                  </div>
-                  
-                  <h3 className="text-xl font-black leading-tight text-[#800020] drop-shadow-sm">
+                <div className="relative z-20 flex flex-col h-full w-[60%]">
+                  <h3 className={`text-2xl font-black leading-[1.1] ${kit.textColor}`}>
                     {isHindi ? kit.titleHi : kit.titleEn}
                   </h3>
-                  <p className="mt-1 text-[11px] font-semibold leading-relaxed text-[#5C4B42] sm:text-xs">
+                  <p className="mt-2 text-xs font-medium leading-relaxed text-[#5C4B42]">
                     {isHindi ? kit.descHi : kit.descEn}
                   </p>
+
+                  <ul className="mt-6 space-y-2">
+                    {(isHindi ? kit.featuresHi : kit.featuresEn).map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-2 text-[11px] font-bold text-[#30251F]">
+                        <Check size={14} className={`shrink-0 ${kit.textColor}`} strokeWidth={3} />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                {/* Bottom Section: Price & Action */}
-                <div className="relative z-10 mt-auto flex w-full items-end justify-between pt-4">
+                <div className="absolute bottom-0 right-0 w-[55%] h-full pointer-events-none">
+                   <img
+                    src={kit.image}
+                    alt={kit.titleEn}
+                    className="h-full w-full object-contain object-bottom drop-shadow-2xl transition-transform duration-700 group-hover:scale-105 group-hover:-rotate-2"
+                    style={{
+                      maskImage: "linear-gradient(to top, black 50%, transparent 100%)",
+                      WebkitMaskImage: "linear-gradient(to top, black 50%, transparent 100%)",
+                    }}
+                  />
+                </div>
+
+                <div className="relative z-20 mt-8 flex items-end justify-between w-full">
                   <div>
-                    <p className="text-2xl font-black text-[#800020]">{money(kit.price)}</p>
-                    <p className="text-[11px] font-bold text-[#76665C] line-through decoration-[#800020]/30 decoration-2">
-                      {money(kit.originalPrice)}
-                    </p>
+                    <p className={`text-3xl font-black ${kit.textColor}`}>{money(kit.price)}</p>
+                    <p className="text-[11px] font-bold text-[#76665C] line-through mt-1">{money(kit.originalPrice)}</p>
                   </div>
                   
-                  {/* Floating Action Button */}
-                  <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/90 text-[#800020] shadow-[0_4px_12px_rgba(0,0,0,0.1)] backdrop-blur-sm transition-all group-hover:scale-110 group-hover:bg-[#800020] group-hover:text-white">
-                    <ArrowUpRight size={22} strokeWidth={2.5} />
+                  <div className="flex flex-col items-end">
+                    <span className="text-[9px] font-bold text-[#138047] bg-[#138047]/10 px-2 py-0.5 rounded-sm mb-2">
+                      Save {money(kit.originalPrice - kit.price)}
+                    </span>
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#800020] shadow-md transition-all group-hover:scale-110 group-hover:bg-[#800020] group-hover:text-white">
+                      <ArrowUpRight size={20} strokeWidth={3} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -212,111 +317,149 @@ export default function KitBuilder() {
         </div>
       </div>
 
-      {/* FULL CUSTOMIZER MODAL (Same as before) */}
+      {/* =========================================
+          PREMIUM CUSTOMIZER MODAL (Blinkit Style)
+          ========================================= */}
       {activeKit && (
         <div className="fixed inset-0 z-[900] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-4" onClick={closeBuilder}>
           <div
             role="dialog"
             aria-modal="true"
             onClick={(e) => e.stopPropagation()}
-            className="flex h-[92dvh] w-full flex-col overflow-hidden rounded-t-[24px] bg-[#FFFCF0] shadow-2xl sm:h-auto sm:max-h-[90dvh] sm:max-w-4xl sm:rounded-[32px]"
+            className="flex h-[92dvh] w-full flex-col overflow-hidden rounded-t-[28px] bg-[#FFF9F0] shadow-2xl sm:h-auto sm:max-h-[90dvh] sm:max-w-3xl sm:rounded-[28px]"
           >
-            <div className="flex items-center justify-between border-b border-[#800020]/10 bg-white px-4 py-3 sm:px-6 sm:py-4">
-              <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br text-xl shadow-inner sm:h-12 sm:w-12 ${activeKit.bg}`}>
-                  <img src={activeKit.image} alt="" className="h-full w-full object-cover opacity-80" />
+            
+            {/* Modal Header */}
+            <div className="relative overflow-hidden border-b border-[#800020]/10 bg-gradient-to-b from-[#FFF4D6] to-[#FFF9F0] px-4 py-4 sm:px-6">
+              <div className="absolute -right-4 -top-4 opacity-20 text-6xl">🍅</div>
+              <div className="absolute -left-4 bottom-0 opacity-20 text-5xl">🌾</div>
+
+              <div className="relative z-10 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm overflow-hidden border border-white">
+                    <img src={activeKit.image} alt="" className="h-full w-full object-cover" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-[#800020] sm:text-xl">
+                      {isHindi ? activeKit.titleHi : activeKit.titleEn}
+                    </h3>
+                    <p className="text-[11px] font-medium text-[#68574A]">
+                      {isHindi ? "ताज़ा सामान के साथ अपनी किट बनाएं।" : "Customize your kit with fresh essentials."}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h3 className="truncate text-base font-black text-[#800020] sm:text-xl">
-                    {isHindi ? activeKit.titleHi : activeKit.titleEn}
-                  </h3>
-                  <p className="mt-0.5 text-[10px] text-[#76665C] sm:text-xs">
-                    {isHindi ? "सामान चुनें या नया लिखें।" : "Customize your kit."}
-                  </p>
-                </div>
+                <button
+                  onClick={closeBuilder}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white text-[#800020] shadow-sm transition-all hover:bg-gray-100"
+                >
+                  <X size={18} />
+                </button>
               </div>
-              <button
-                onClick={closeBuilder}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#FFF9D8] text-[#800020] transition-colors hover:bg-[#800020]/10 sm:h-10 sm:w-10"
-              >
-                <X size={18} className="sm:h-5 sm:w-5" />
-              </button>
+
+              <div className="relative z-10 mt-3 flex items-center justify-center gap-3 sm:gap-6 rounded-xl bg-[#D4A84F]/10 py-1.5">
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#800020]"><Star size={12} /> {isHindi ? "बेस्ट वैल्यू" : "Best Value"}</div>
+                <div className="h-3 w-px bg-[#800020]/20" />
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#800020]"><Truck size={12} /> {isHindi ? "डेली ज़रूरतें" : "Daily Essentials"}</div>
+                <div className="h-3 w-px bg-[#800020]/20" />
+                <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#800020]"><Users size={12} /> {isHindi ? "हर परिवार के लिए" : "For Every Family"}</div>
+              </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto pb-24 sm:pb-0">
-              <div className="sticky top-0 z-10 bg-[#FFFCF0]/95 px-4 py-3 backdrop-blur-md sm:px-6">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto pb-28 sm:pb-24">
+              
+              {/* Search & Categories */}
+              <div className="sticky top-0 z-20 bg-[#FFF9F0]/95 px-4 py-3 backdrop-blur-md sm:px-6">
                 <div className="relative">
-                  <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#800020]/50" />
+                  <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder={isHindi ? "सामान खोजें..." : "Search products..."}
-                    className="h-11 w-full rounded-xl border border-[#800020]/15 bg-white pl-10 pr-4 text-sm font-medium outline-none transition focus:border-[#800020] focus:ring-2 focus:ring-[#800020]/20"
+                    className="h-11 w-full rounded-xl border border-gray-200 bg-white pl-11 pr-4 text-sm font-medium outline-none transition focus:border-[#800020] focus:ring-1 focus:ring-[#800020]"
                   />
                 </div>
+                
                 <div className="mt-3 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                   {categoryOptions.map((item) => (
                     <button
                       key={item.id}
                       onClick={() => setCategory(item.id)}
-                      className={`shrink-0 rounded-lg px-3 py-1.5 text-[11px] font-bold transition-all sm:text-xs ${
-                        category === item.id
-                          ? "bg-[#800020] text-white shadow-sm"
-                          : "bg-white text-[#800020] border border-[#800020]/15"
+                      className={`shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-2 text-[11px] font-bold transition-all ${
+                        category === item.id ? "bg-[#800020] text-white shadow-sm" : "bg-white text-[#30251F] border border-gray-200 hover:border-[#800020]/30"
                       }`}
                     >
+                      {item.id === "all" && <LayoutGrid size={12} />}
                       {isHindi ? item.hi : item.en}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="px-4 py-2 sm:px-6">
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Products List with Savings */}
+              <div className="px-3 pt-1 sm:px-5">
+                <div className="flex flex-col gap-3">
                   {visibleProducts.map((product) => {
                     const quantity = quantities[product.id] || 0;
+                    // Fake realistic MRP (Price + ~25%)
+                    const originalPrice = product.originalPrice || Math.round(product.price * 1.25); 
+                    const savings = originalPrice - product.price;
+                    
                     return (
                       <div
                         key={product.id}
                         className={`flex items-center gap-3 rounded-xl border p-2.5 transition-all ${
-                          quantity > 0 ? "border-[#D4A84F] bg-[#FFF9D8]" : "border-[#E8E4DA] bg-white"
+                          quantity > 0 ? "border-[#D4A84F] bg-[#FFF8E5] shadow-sm" : "border-gray-100 bg-white shadow-sm hover:border-gray-300"
                         }`}
                       >
-                        <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white p-1">
-                          <img src={product.image} alt="" className="h-full w-full object-contain" />
+                        {/* Image with Quantity Badge */}
+                        <div className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-[#F8F8F8] p-1 overflow-hidden">
+                          <img src={product.image} alt="" className="h-full w-full object-contain mix-blend-multiply" />
                           {quantity > 0 && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-[#800020]/10 backdrop-blur-[1px]">
-                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#800020] text-[10px] font-black text-white">
-                                {quantity}
-                              </span>
+                            <div className="absolute left-0 top-0 flex h-6 w-6 items-center justify-center rounded-br-lg bg-[#800020] text-[10px] font-black text-white shadow-sm">
+                              {quantity}
                             </div>
                           )}
                         </div>
                         
+                        {/* Details */}
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-bold text-[#30251F] sm:text-sm">
+                          <p className="text-[14px] font-bold text-[#30251F] leading-tight line-clamp-2">
                             {isHindi ? product.nameHi : product.name}
                           </p>
-                          <p className="mt-1 text-xs font-black text-[#800020]">
-                            {money(product.price)}
-                          </p>
+                          
+                          {/* Realistic Savings Tag */}
+                          <div className="mt-1 inline-flex items-center gap-1 rounded bg-[#138047]/10 px-1.5 py-0.5">
+                            <span className="text-[9px] font-black text-[#138047] uppercase tracking-wider">
+                              Save ₹{savings}
+                            </span>
+                          </div>
+
+                          {/* Price Row */}
+                          <div className="mt-1 flex items-center gap-2">
+                            <p className="text-lg font-black text-[#800020]">{money(product.price)}</p>
+                            <p className="text-xs font-medium text-gray-400 line-through">{money(originalPrice)}</p>
+                          </div>
                         </div>
 
-                        <div className="flex shrink-0 items-center gap-1 rounded-lg border border-[#800020]/10 bg-white p-1">
-                          <button
-                            onClick={() => changeQuantity(product, -1)}
-                            disabled={quantity === 0}
-                            className="flex h-7 w-7 items-center justify-center rounded-md text-[#800020] disabled:opacity-30"
-                          >
-                            <Minus size={14} />
-                          </button>
-                          <span className="w-5 text-center text-xs font-black">{quantity}</span>
-                          <button
-                            onClick={() => changeQuantity(product, 1)}
-                            className="flex h-7 w-7 items-center justify-center rounded-md bg-[#800020] text-white"
-                          >
-                            <Plus size={14} />
-                          </button>
+                        {/* +/- Controls */}
+                        <div className="flex shrink-0 flex-col items-center gap-1">
+                          <div className="flex items-center rounded-lg border border-[#800020]/20 bg-white shadow-sm overflow-hidden h-9">
+                            <button
+                              onClick={() => changeQuantity(product, -1)}
+                              disabled={quantity === 0}
+                              className="flex h-full w-8 items-center justify-center text-[#800020] transition-colors hover:bg-[#800020]/5 disabled:opacity-30"
+                            >
+                              <Minus size={14} strokeWidth={3} />
+                            </button>
+                            <span className="w-6 text-center text-sm font-black">{quantity}</span>
+                            <button
+                              onClick={() => changeQuantity(product, 1)}
+                              className="flex h-full w-8 items-center justify-center bg-[#800020] text-white transition-transform active:scale-95"
+                            >
+                              <Plus size={14} strokeWidth={3} />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     );
@@ -324,25 +467,28 @@ export default function KitBuilder() {
                 </div>
 
                 {visibleProducts.length === 0 && (
-                  <div className="py-10 text-center">
-                    <p className="text-3xl">🔎</p>
-                    <p className="mt-2 text-sm font-bold text-[#800020]">No items found</p>
+                  <div className="py-12 text-center">
+                    <p className="text-4xl">🔎</p>
+                    <p className="mt-3 text-base font-bold text-[#800020]">No items found</p>
                   </div>
                 )}
               </div>
 
-              <div className="mx-4 mt-2 rounded-2xl border border-dashed border-[#D4A84F]/50 bg-[#FFF9D8] p-4 sm:mx-6">
-                <h4 className="text-sm font-black text-[#800020]">✚ {isHindi ? "सामान नहीं मिल रहा?" : "Can't find an item?"}</h4>
-                <p className="mt-1 text-[10px] leading-relaxed text-[#76665C]">
+              {/* Add Custom Item Section */}
+              <div className="mx-3 mt-4 rounded-xl border border-dashed border-[#D4A84F]/60 bg-[#FFF9D8] p-3 sm:mx-5">
+                <h4 className="text-xs font-black text-[#800020] flex items-center gap-1.5">
+                  <Plus size={14} /> {isHindi ? "सामान नहीं मिल रहा?" : "Can't find an item?"}
+                </h4>
+                <p className="mt-0.5 text-[10px] leading-relaxed text-[#76665C]">
                   {isHindi ? "सामान का नाम लिखें। दुकान कीमत कन्फर्म करेगी।" : "Type any item name. Store will confirm the price."}
                 </p>
                 
-                <div className="mt-3 grid grid-cols-[1fr_60px] gap-2">
+                <div className="mt-2 flex gap-2">
                   <input
                     value={customName}
                     onChange={(e) => setCustomName(e.target.value)}
                     placeholder={isHindi ? "सामान का नाम" : "Item name"}
-                    className="h-10 rounded-lg border border-[#800020]/15 bg-white px-3 text-xs outline-none focus:border-[#800020]"
+                    className="h-9 flex-1 rounded-lg border border-gray-200 bg-white px-3 text-xs outline-none focus:border-[#800020]"
                   />
                   <input
                     type="number"
@@ -350,37 +496,30 @@ export default function KitBuilder() {
                     max={99}
                     value={customQuantity}
                     onChange={(e) => setCustomQuantity(e.target.value)}
-                    className="h-10 rounded-lg border border-[#800020]/15 bg-white text-center text-xs font-bold outline-none focus:border-[#800020]"
+                    className="h-9 w-12 rounded-lg border border-gray-200 bg-white text-center text-xs font-bold outline-none focus:border-[#800020]"
                   />
+                  <button
+                    onClick={addMissingItem}
+                    className="h-9 rounded-lg bg-[#800020] px-3 text-xs font-bold text-white shadow-sm hover:bg-[#600018]"
+                  >
+                    Add
+                  </button>
                 </div>
-                <input
-                  value={customNote}
-                  onChange={(e) => setCustomNote(e.target.value)}
-                  placeholder={isHindi ? "नोट (वैकल्पिक)" : "Note (optional)"}
-                  className="mt-2 h-10 w-full rounded-lg border border-[#800020]/15 bg-white px-3 text-xs outline-none focus:border-[#800020]"
-                />
-                <button
-                  onClick={addMissingItem}
-                  className="mt-2 h-10 w-full rounded-lg border border-[#800020]/20 bg-white text-xs font-bold text-[#800020] transition hover:bg-[#800020] hover:text-white"
-                >
-                  + {isHindi ? "कस्टम सामान जोड़ें" : "Add Custom Item"}
-                </button>
 
                 {customItems.length > 0 && (
-                  <div className="mt-3 space-y-2">
+                  <div className="mt-3 space-y-1.5">
                     {customItems.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between rounded-lg bg-white p-2 shadow-sm">
+                      <div key={index} className="flex items-center justify-between rounded-lg bg-white p-2 shadow-sm border border-gray-100">
                         <div>
                           <p className="text-xs font-bold text-[#30251F]">
-                            {item.name} × {item.quantity}
+                            {item.name} <span className="text-[#800020]">× {item.quantity}</span>
                           </p>
-                          {item.note && <p className="text-[10px] text-[#76665C]">{item.note}</p>}
                         </div>
                         <button
                           onClick={() => setCustomItems((prev) => prev.filter((_, i) => i !== index))}
-                          className="flex h-6 w-6 items-center justify-center rounded-full bg-red-50 text-red-500"
+                          className="text-red-400 hover:text-red-600"
                         >
-                          <X size={12} />
+                          <X size={14} />
                         </button>
                       </div>
                     ))}
@@ -389,36 +528,35 @@ export default function KitBuilder() {
               </div>
             </div>
 
-            <div className="absolute inset-x-0 bottom-0 border-t border-[#800020]/10 bg-white p-3 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] sm:static sm:p-4">
-              {message && (
-                <p className="mb-2 text-center text-[10px] font-bold text-red-600 sm:text-xs">
-                  ⚠️ {message}
-                </p>
-              )}
+            {/* Sticky Bottom Bar */}
+            <div className="absolute inset-x-0 bottom-0 border-t border-[#800020]/10 bg-[#6B0019] px-4 py-3 shadow-[0_-10px_20px_rgba(0,0,0,0.1)] sm:px-6">
               <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#76665C]">
-                    {isHindi ? "कुल राशि" : "Total"}
-                  </p>
-                  <p className="text-lg font-black text-[#800020] sm:text-xl">
-                    {money(total)}
-                  </p>
-                  <p className="text-[9px] text-[#A47A2C]">{chosenCount + customItems.length} items</p>
+                <div className="flex items-center gap-3">
+                  <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-white/10">
+                    <ShoppingBasket size={20} className="text-[#D4A84F]" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-white/80">
+                      {chosenCount + customItems.length} ITEMS
+                    </p>
+                    <div className="flex items-baseline gap-1.5">
+                      <p className="text-2xl font-black text-white">{money(total)}</p>
+                      <p className="text-xs font-medium text-white/50 line-through">{money(total + 500)}</p>
+                    </div>
+                  </div>
                 </div>
+
                 <button
                   onClick={submitKit}
                   disabled={total > MAX_TOTAL || (total < MIN_TOTAL && customItems.length === 0)}
-                  className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#800020] px-4 text-xs font-black text-white shadow-md transition-all hover:bg-[#610019] disabled:cursor-not-allowed disabled:opacity-50 sm:h-12 sm:max-w-xs sm:text-sm"
+                  className="flex h-12 items-center justify-center gap-2 rounded-xl bg-[#D4A84F] px-6 text-sm font-black text-[#30251F] shadow-[0_4px_15px_rgba(212,168,79,0.4)] transition-all hover:-translate-y-0.5 hover:bg-[#E8C77A] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <ShoppingBag size={16} />
-                  {customItems.length > 0 && total < MIN_TOTAL ? (
-                    isHindi ? "कस्टम जोड़ें" : "Add Custom"
-                  ) : (
-                    isHindi ? "कार्ट में जोड़ें" : "Add to Cart"
-                  )}
+                  {isHindi ? "कार्ट देखें" : "View Cart"}
+                  <ArrowRight size={18} strokeWidth={3} />
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       )}
