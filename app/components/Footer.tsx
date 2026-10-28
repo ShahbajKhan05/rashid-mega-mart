@@ -1,15 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import gsap from "gsap";
 import {
   MapPin,
   Phone,
   Mail,
-  MessageCircle,
   ChevronRight,
   X,
   ShieldCheck,
+  ArrowRight,
 } from "lucide-react";
 import { useLanguage } from "./LanguageProvider";
 
@@ -17,9 +18,7 @@ const PHONE = "918962531603";
 const PHONE_DISPLAY = "+91 89625 31603";
 const EMAIL = "support@rashidmegamart.com";
 const ADDRESS = "Ghoghar, Rewa, Madhya Pradesh, India - 486001";
-
-// Yahan apna asli FSSAI Number daal dena
-const FSSAI_NUMBER = "12345678901234"; 
+const FSSAI_NUMBER = "12345678901234";
 
 const SOCIAL_LINKS = {
   facebook: "https://www.facebook.com/",
@@ -28,357 +27,289 @@ const SOCIAL_LINKS = {
 };
 
 type SocialIconName = "facebook" | "instagram" | "youtube";
-
 type Notice = {
   title: string;
-  message: string;
+  content: React.ReactNode;
 };
 
-function SocialIcon({
-  name,
-  className = "h-5 w-5",
-}: {
-  name: SocialIconName;
-  className?: string;
-}) {
+// REAL SVG ICONS FOR SOCIALS
+function SocialIcon({ name, className = "h-5 w-5" }: { name: SocialIconName; className?: string }) {
   if (name === "facebook") {
     return (
-      <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
         <path d="M13.5 21v-8.2h2.8l.4-3.2h-3.2V7.5c0-.9.3-1.5 1.6-1.5H17V3.1c-.8-.1-1.7-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3v2.3H7.5v3.2h2.8V21z" />
       </svg>
     );
   }
-
   if (name === "instagram") {
     return (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
-        <rect x="3" y="3" width="18" height="18" rx="5" />
-        <circle cx="12" cy="12" r="4" />
-        <circle cx="17.5" cy="6.5" r="0.8" fill="currentColor" stroke="none" />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
       </svg>
     );
   }
-
+  // YouTube
   return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="M23 7a3 3 0 0 0-2.1-2.1C19 4.4 12 4.4 12 4.4s-7 0-8.9.5A3 3 0 0 0 1 7a31 31 0 0 0-.5 5 31 31 0 0 0 .5 5 3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5A3 3 0 0 0 23 17a31 31 0 0 0 .5-5 31 31 0 0 0-.5-5ZM9.6 15.5v-7l6 3.5-6 3.5Z" />
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path>
+      <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="white"></polygon>
+    </svg>
+  );
+}
+
+// REAL WHATSAPP ICON
+function WhatsAppIcon({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
     </svg>
   );
 }
 
 export default function Footer() {
-  const { language, toggleLanguage } = useLanguage();
+  const { language } = useLanguage();
   const isHindi = language === "hi";
+  const footerRef = useRef<HTMLDivElement>(null);
 
   const [year, setYear] = useState("2026");
-  const [logoFailed, setLogoFailed] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
 
   useEffect(() => {
     setYear(String(new Date().getFullYear()));
   }, []);
 
+  // GSAP Footer Reveal Animation
   useEffect(() => {
-    if (!notice) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ".footer-animate",
+        { y: 50, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: footerRef.current,
+            start: "top 90%",
+          },
+        }
+      );
+    }, footerRef);
+    return () => ctx.revert();
+  }, []);
 
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setNotice(null);
-      }
-    };
-
-    window.addEventListener("keydown", handleEscape);
-
-    return () => {
-      window.removeEventListener("keydown", handleEscape);
-    };
+  // Lock scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = notice ? "hidden" : "unset";
   }, [notice]);
 
-  const text = {
-    contact: isHindi ? "संपर्क करें" : "Contact Us",
-    quickLinks: isHindi ? "महत्वपूर्ण लिंक" : "Quick Links",
-    follow: isHindi ? "हमसे जुड़ें" : "Follow Us",
-    home: isHindi ? "होम" : "Home",
-    kits: isHindi ? "किराना किट्स" : "Grocery Kits",
-    about: isHindi ? "हमारे बारे में" : "About Us",
-    contactLink: isHindi ? "संपर्क" : "Contact",
-    privacy: isHindi ? "गोपनीयता नीति" : "Privacy Policy",
-    terms: isHindi ? "नियम और शर्तें" : "Terms & Conditions",
-    whatsapp: isHindi ? "WhatsApp पर ऑर्डर करें" : "Order on WhatsApp",
-    description: isHindi
-      ? "आपकी रोज़मर्रा की ज़रूरतों के लिए भरोसेमंद किराना और वैल्यू किट्स।"
-      : "Everyday groceries and value kits for your family's daily needs.",
-    rights: isHindi ? "सर्वाधिकार सुरक्षित।" : "All Rights Reserved.",
-    language: isHindi ? "English" : "हिंदी",
-    location: isHindi ? "घोघर, रीवा, मध्य प्रदेश, भारत - 486001" : ADDRESS,
-    close: isHindi ? "बंद करें" : "Close",
-    ok: isHindi ? "ठीक है" : "Got it",
-    brandLine: isHindi ? "आपकी अपनी किराना दुकान" : "Your Neighbourhood Grocery Store",
-    socialDescription: isHindi
-      ? "स्टोर की जानकारी, पूछताछ और ऑर्डर के लिए हमसे जुड़ें।"
-      : "Connect with us for store information, enquiries and orders.",
-    privacyMessage: isHindi
-      ? `गोपनीयता और व्यक्तिगत जानकारी से जुड़ी जानकारी के लिए ${PHONE_DISPLAY} पर संपर्क करें।`
-      : `For information about privacy and personal data, contact us at ${PHONE_DISPLAY}.`,
-    termsMessage: isHindi
-      ? `स्टोर के नियम और शर्तों के लिए ${PHONE_DISPLAY} पर संपर्क करें।`
-      : `For store terms and conditions, contact us at ${PHONE_DISPLAY}.`,
-    fssai: isHindi ? "FSSAI लाइसेंस संख्या:" : "FSSAI Lic. No:",
+  const openContactModal = () => {
+    setNotice({
+      title: isHindi ? "संपर्क करें" : "Contact Us",
+      content: (
+        <div className="space-y-4">
+          <div className="flex items-start gap-3">
+            <MapPin className="text-[#800020] mt-1 shrink-0" size={20} />
+            <div>
+              <p className="font-bold text-[#30251F]">{isHindi ? "पता" : "Address"}</p>
+              <p className="text-sm text-gray-600">{ADDRESS}</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <Phone className="text-[#800020] mt-1 shrink-0" size={20} />
+            <div>
+              <p className="font-bold text-[#30251F]">{isHindi ? "फोन" : "Phone"}</p>
+              <a href={`tel:+${PHONE}`} className="text-sm text-gray-600 hover:text-[#800020]">{PHONE_DISPLAY}</a>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <Mail className="text-[#800020] mt-1 shrink-0" size={20} />
+            <div>
+              <p className="font-bold text-[#30251F]">{isHindi ? "ईमेल" : "Email"}</p>
+              <a href={`mailto:${EMAIL}`} className="text-sm text-gray-600 hover:text-[#800020]">{EMAIL}</a>
+            </div>
+          </div>
+          <a href={`https://wa.me/${PHONE}`} target="_blank" rel="noopener noreferrer" className="mt-4 flex items-center justify-center gap-2 w-full rounded-xl bg-[#138047] py-3 text-white font-bold text-sm shadow-md hover:bg-[#0D6837] transition">
+            <WhatsAppIcon className="h-5 w-5" /> {isHindi ? "WhatsApp पर चैट करें" : "Chat on WhatsApp"}
+          </a>
+        </div>
+      ),
+    });
   };
 
-  const footerLinks = [
-    { label: text.home, href: "#top" },
-    { label: text.kits, href: "#kit" },
-    { label: text.about, href: "#about" },
-    { label: text.contactLink, href: "#contact" },
-  ];
+  const openPrivacyModal = () => {
+    setNotice({
+      title: isHindi ? "गोपनीयता नीति" : "Privacy Policy",
+      content: (
+        <div className="space-y-4 text-sm text-gray-600 leading-relaxed">
+          <p>At <strong>Rashid Mega Mart</strong>, we value your privacy. We only collect basic information like your name, phone number, and address to fulfill your grocery orders.</p>
+          <p>We do not sell or share your personal data with third-party advertisers. Your data is securely used for order confirmation and delivery purposes only.</p>
+          <p>For any data deletion requests, please contact us at {EMAIL}.</p>
+        </div>
+      ),
+    });
+  };
 
-  function openNotice(title: string, message: string) {
-    setNotice({ title, message });
-  }
-
-  const softClay =
-    "shadow-[3px_3px_7px_rgba(85,25,25,0.07),-2px_-2px_6px_rgba(255,255,255,0.75)]";
-
-  const iconSurface =
-    `flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ` +
-    `bg-[#800020]/[0.06] text-[#800020] ${softClay} ` +
-    `transition-all duration-200 group-hover:bg-[#800020] ` +
-    `group-hover:text-white`;
-
-  const socialSurface =
-    `flex h-11 w-11 items-center justify-center rounded-xl ` +
-    `border border-[#800020]/10 bg-[#FFFDF0] text-[#800020] ` +
-    `${softClay} transition-all duration-200 ` +
-    `hover:-translate-y-0.5 hover:bg-[#800020] ` +
-    `hover:text-white sm:h-12 sm:w-12`;
+  const openTermsModal = () => {
+    setNotice({
+      title: isHindi ? "नियम और शर्तें" : "Terms & Conditions",
+      content: (
+        <div className="space-y-4 text-sm text-gray-600 leading-relaxed">
+          <p><strong>1. Order & Delivery:</strong> Orders placed via WhatsApp are confirmed upon reply. Delivery time is estimated at 30-45 minutes but may vary based on availability.</p>
+          <p><strong>2. Pricing:</strong> All prices are in INR and subject to change without prior notice. Custom items' prices will be confirmed by the store.</p>
+          <p><strong>3. Returns:</strong> Fresh items can only be returned at the time of delivery if found damaged or expired.</p>
+        </div>
+      ),
+    });
+  };
 
   return (
     <>
-      <footer id="contact" className="border-t-2 border-[#D4A84F] bg-[#FFF9D8] text-[#171717]">
-        <div className="mx-auto w-full max-w-[1700px] px-4 py-9 sm:px-6 sm:py-11 lg:px-10 xl:px-[5.5%]">
+      <footer ref={footerRef} id="contact" className="relative border-t-2 border-[#D4A84F] bg-[#FFF9D8] text-[#171717] overflow-hidden">
+        
+        <div className="absolute top-0 right-0 h-64 w-64 rounded-full bg-[#D4A84F]/10 blur-[80px] pointer-events-none" />
 
-          {/* Brand heading and language toggle */}
-          <div className="mb-8 flex flex-wrap items-center justify-between gap-4 border-b border-[#800020]/15 pb-5 sm:mb-10">
-            <div className="flex min-w-0 items-center gap-3">
-              <span className="h-9 w-1 shrink-0 rounded-full bg-[#800020]" />
-              <div className="min-w-0">
-                <h2 className="text-lg font-extrabold tracking-tight text-[#800020] sm:text-xl">
-                  Rashid Mega Mart
-                </h2>
-                <p className="mt-1 max-w-xl text-xs leading-5 text-[#5C4B42] sm:text-sm">
-                  {text.description}
-                </p>
+        <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8 relative z-10">
+          
+          {/* Brand Header */}
+          <div className="footer-animate mb-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-[#800020]/10 pb-6">
+            <div>
+              <h2 className="text-2xl font-black tracking-tight text-[#800020]">Rashid Mega Mart</h2>
+              <p className="mt-1 text-sm text-[#5C4B42] max-w-md">
+                {isHindi ? "आपकी रोज़मर्रा की ज़रूरतों के लिए भरोसेमंद किराना और वैल्यू किट्स।" : "Everyday groceries and value kits for your family's daily needs."}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 rounded-lg bg-white/50 px-4 py-2 border border-[#800020]/10 shadow-sm">
+              <ShieldCheck size={20} className="text-[#138047]" />
+              <div>
+                <p className="text-[9px] font-black uppercase text-gray-500 tracking-wider">Certified Store</p>
+                <p className="text-xs font-bold text-[#30251F]">FSSAI: {FSSAI_NUMBER}</p>
               </div>
             </div>
-
-            <button
-              type="button"
-              onClick={toggleLanguage}
-              aria-label={isHindi ? "Switch to English" : "हिंदी में बदलें"}
-              className={`shrink-0 rounded-full border border-[#800020]/20 bg-[#FFFDF0] px-4 py-2 text-sm font-extrabold text-[#800020] ${softClay} transition-colors hover:bg-[#800020] hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#800020]`}
-            >
-              {text.language}
-            </button>
           </div>
 
-          <div className="grid grid-cols-1 gap-9 sm:grid-cols-2 sm:gap-x-8 lg:grid-cols-4 lg:gap-8 xl:gap-12">
-            {/* Contact details */}
-            <section aria-labelledby="footer-contact-title">
-              <h3 id="footer-contact-title" className="mb-5 text-lg font-extrabold text-[#800020] sm:text-xl">
-                {text.contact}
-              </h3>
-
+          {/* Main Grid */}
+          <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
+            
+            {/* Contact */}
+            <section className="footer-animate">
+              <h3 className="mb-5 text-lg font-black text-[#800020]">Contact Us</h3>
               <div className="flex flex-col gap-4">
-                <a
-                  href="https://www.google.com/maps/search/?api=1&query=Ghoghar%2C+Rewa%2C+Madhya+Pradesh"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex min-w-0 items-start gap-3 text-sm leading-6 text-[#37302D] transition-colors hover:text-[#800020] sm:text-[15px]"
-                >
-                  <span className={iconSurface}><MapPin size={21} /></span>
-                  <span className="break-words pt-1">{text.location}</span>
-                </a>
-
-                <a
-                  href={`tel:+${PHONE}`}
-                  className="group flex min-w-0 items-center gap-3 text-sm font-bold text-[#37302D] transition-colors hover:text-[#800020] sm:text-[15px]"
-                >
-                  <span className={iconSurface}><Phone size={20} /></span>
-                  <span>{PHONE_DISPLAY}</span>
-                </a>
-
-                <a
-                  href={`https://wa.me/${PHONE}?text=${encodeURIComponent(isHindi ? "नमस्ते राशिद मेगा मार्ट!" : "Hello Rashid Mega Mart!")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex min-w-0 items-center gap-3 text-sm text-[#37302D] transition-colors hover:text-[#138047] sm:text-[15px]"
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#138047]/[0.07] text-[#138047] shadow-[3px_3px_7px_rgba(19,128,71,0.08),-2px_-2px_6px_rgba(255,255,255,0.75)] transition-colors group-hover:bg-[#138047] group-hover:text-white">
-                    <MessageCircle size={21} />
+                <a href="https://maps.google.com" target="_blank" className="group flex items-start gap-3 text-sm text-gray-600 hover:text-[#800020]">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#800020] shadow-sm group-hover:bg-[#800020] group-hover:text-white transition-colors">
+                    <MapPin size={20} />
                   </span>
-                  <span>{text.whatsapp}</span>
+                  <span className="pt-2">{ADDRESS}</span>
                 </a>
-
-                <a
-                  href={`mailto:${EMAIL}`}
-                  className="group flex min-w-0 items-center gap-3 text-sm text-[#37302D] transition-colors hover:text-[#800020] sm:text-[15px]"
-                >
-                  <span className={iconSurface}><Mail size={20} /></span>
+                <a href={`tel:+${PHONE}`} className="group flex items-center gap-3 text-sm text-gray-600 hover:text-[#800020]">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#800020] shadow-sm group-hover:bg-[#800020] group-hover:text-white transition-colors">
+                    <Phone size={20} />
+                  </span>
+                  <span className="font-bold">{PHONE_DISPLAY}</span>
+                </a>
+                <a href={`mailto:${EMAIL}`} className="group flex items-center gap-3 text-sm text-gray-600 hover:text-[#800020]">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#800020] shadow-sm group-hover:bg-[#800020] group-hover:text-white transition-colors">
+                    <Mail size={20} />
+                  </span>
                   <span className="break-all">{EMAIL}</span>
                 </a>
               </div>
             </section>
 
-            {/* Quick links */}
-            <section aria-labelledby="footer-links-title">
-              <h3 id="footer-links-title" className="mb-5 text-lg font-extrabold text-[#800020] sm:text-xl">
-                {text.quickLinks}
-              </h3>
-              <nav aria-label={text.quickLinks} className="flex flex-col items-start gap-3.5">
-                {footerLinks.map((link) => (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    className="group flex items-center gap-2 text-sm text-[#37302D] transition-colors hover:text-[#800020] sm:text-[15px]"
-                  >
-                    <ChevronRight size={17} className="shrink-0 text-[#800020] transition-transform group-hover:translate-x-1" />
-                    <span>{link.label}</span>
+            {/* Quick Links */}
+            <section className="footer-animate">
+              <h3 className="mb-5 text-lg font-black text-[#800020]">Quick Links</h3>
+              <nav className="flex flex-col gap-3">
+                {[
+                  { label: "Home", href: "/" },
+                  { label: "Grocery Kits", href: "#kit" },
+                  { label: "About Us", href: "#about" },
+                ].map((link) => (
+                  <a key={link.label} href={link.href} className="group flex items-center gap-2 text-sm text-gray-600 hover:text-[#800020]">
+                    <ChevronRight size={16} className="text-[#D4A84F] group-hover:translate-x-1 transition-transform" />
+                    {link.label}
                   </a>
                 ))}
-                <button
-                  type="button"
-                  onClick={() => openNotice(text.privacy, text.privacyMessage)}
-                  className="group flex items-center gap-2 text-left text-sm text-[#37302D] transition-colors hover:text-[#800020] sm:text-[15px]"
-                >
-                  <ChevronRight size={17} className="shrink-0 text-[#800020] transition-transform group-hover:translate-x-1" />
-                  {text.privacy}
+                <button onClick={openContactModal} className="group flex items-center gap-2 text-sm text-gray-600 hover:text-[#800020]">
+                  <ChevronRight size={16} className="text-[#D4A84F] group-hover:translate-x-1 transition-transform" /> Contact
                 </button>
-                <button
-                  type="button"
-                  onClick={() => openNotice(text.terms, text.termsMessage)}
-                  className="group flex items-center gap-2 text-left text-sm text-[#37302D] transition-colors hover:text-[#800020] sm:text-[15px]"
-                >
-                  <ChevronRight size={17} className="shrink-0 text-[#800020] transition-transform group-hover:translate-x-1" />
-                  {text.terms}
+                <button onClick={openPrivacyModal} className="group flex items-center gap-2 text-sm text-gray-600 hover:text-[#800020]">
+                  <ChevronRight size={16} className="text-[#D4A84F] group-hover:translate-x-1 transition-transform" /> Privacy Policy
+                </button>
+                <button onClick={openTermsModal} className="group flex items-center gap-2 text-sm text-gray-600 hover:text-[#800020]">
+                  <ChevronRight size={16} className="text-[#D4A84F] group-hover:translate-x-1 transition-transform" /> Terms & Conditions
                 </button>
               </nav>
             </section>
 
-            {/* Social links */}
-            <section aria-labelledby="footer-social-title">
-              <h3 id="footer-social-title" className="mb-5 text-lg font-extrabold text-[#800020] sm:text-xl">
-                {text.follow}
-              </h3>
-              <div className="flex flex-wrap items-center gap-3">
-                <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className={socialSurface}>
+            {/* Socials */}
+            <section className="footer-animate">
+              <h3 className="mb-5 text-lg font-black text-[#800020]">Follow Us</h3>
+              <div className="flex flex-wrap gap-3">
+                <a href={SOCIAL_LINKS.facebook} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#1877F2] shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
                   <SocialIcon name="facebook" className="h-6 w-6" />
                 </a>
-                <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className={socialSurface}>
+                <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#E4405F] shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
                   <SocialIcon name="instagram" className="h-6 w-6" />
                 </a>
-                <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube" className={socialSurface}>
+                <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#FF0000] shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
                   <SocialIcon name="youtube" className="h-6 w-6" />
                 </a>
-                <a
-                  href={`https://wa.me/${PHONE}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="WhatsApp"
-                  className={`flex h-11 w-11 items-center justify-center rounded-xl border border-[#138047]/15 bg-[#FFFDF0] text-[#138047] ${softClay} transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#138047] hover:text-white sm:h-12 sm:w-12`}
-                >
-                  <MessageCircle size={23} />
+                <a href={`https://wa.me/${PHONE}`} target="_blank" rel="noopener noreferrer" className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-[#25D366] shadow-sm hover:-translate-y-1 hover:shadow-md transition-all">
+                  <WhatsAppIcon className="h-6 w-6" />
                 </a>
               </div>
-              <p className="mt-4 max-w-xs text-sm leading-6 text-[#5C4B42]">
-                {text.socialDescription}
-              </p>
+              <p className="mt-4 text-xs text-gray-500 leading-relaxed">Connect with us for store information, enquiries and orders.</p>
             </section>
 
-            {/* Brand logo */}
-            <section aria-label="Rashid Mega Mart brand" className="flex min-w-0 flex-col items-center justify-center text-center sm:col-span-2 lg:col-span-1">
-              <a href="#top" aria-label="Rashid Mega Mart home" className="flex w-full items-center justify-center rounded-2xl p-3 transition-colors hover:bg-white/40">
-                {!logoFailed ? (
-                  <Image
-                    src="/Logo.png"
-                    alt="Rashid Mega Mart logo"
-                    width={210}
-                    height={210}
-                    onError={() => setLogoFailed(true)}
-                    className="h-auto max-h-48 w-full max-w-[175px] object-contain sm:max-h-52"
-                  />
-                ) : (
-                  <span className="flex flex-col items-center justify-center gap-2 py-5">
-                    <span className="text-5xl" aria-hidden="true">🛒</span>
-                    <span className="text-center text-xl font-black leading-tight tracking-tight text-[#800020]">
-                      RASHID <span className="block">MEGA MART</span>
-                    </span>
-                    <span className="text-xs text-[#5C4B42]">
-                      {isHindi ? "किराना स्टोर • रीवा" : "Grocery Store • Rewa"}
-                    </span>
-                  </span>
-                )}
-              </a>
-              <p className="mt-2 text-xs font-semibold tracking-wide text-[#800020]">
-                {text.brandLine}
-              </p>
-              <span className="mt-3 h-1 w-14 rounded-full bg-[#D4A84F]" />
+            {/* Logo */}
+            <section className="footer-animate flex flex-col items-center justify-center text-center">
+              <Image src="/Logo.png" alt="Logo" width={150} height={150} className="object-contain mb-3" />
+              <p className="text-xs font-black text-[#800020] tracking-wider uppercase">Your Neighbourhood Store</p>
+              <div className="mt-3 h-1 w-12 rounded-full bg-[#D4A84F]" />
             </section>
           </div>
 
-          {/* Bottom bar with FSSAI */}
-          <div className="mt-9 flex flex-col gap-4 border-t border-[#800020]/15 pt-5 sm:mt-11 md:flex-row md:items-center md:justify-between">
-            
-            {/* FSSAI Badge */}
-            <div className="flex items-center gap-2 rounded-lg bg-white/50 px-3 py-2 border border-[#800020]/10 w-fit">
-              <ShieldCheck size={20} className="text-[#138047]" />
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                  {isHindi ? "प्रमाणित दुकान" : "Certified Store"}
-                </span>
-                <span className="text-xs font-black text-gray-800">
-                  {text.fssai} {FSSAI_NUMBER}
-                </span>
-              </div>
-            </div>
-
-            <p className="text-xs leading-6 text-[#5C4B42] sm:text-sm md:text-right">
-              © {year} <strong className="text-[#800020]">Rashid Mega Mart.</strong> {text.rights}
+          {/* Bottom Bar */}
+          <div className="footer-animate mt-12 flex flex-col md:flex-row items-center justify-between gap-4 border-t border-[#800020]/10 pt-6">
+            <p className="text-xs text-gray-500">
+              © {year} <strong className="text-[#800020]">Rashid Mega Mart.</strong> All Rights Reserved.
+            </p>
+            <p className="text-xs text-gray-400 flex items-center gap-1">
+              Crafted with <span className="text-red-500">❤️</span> by <a href="#" className="font-bold text-[#800020]">Noor Technologies</a>
             </p>
           </div>
         </div>
       </footer>
 
-      {/* Privacy and terms dialog */}
+      {/* AWARD-WINNING MODAL (Popup) */}
       {notice && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 p-4 sm:p-6" onClick={() => setNotice(null)}>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm" onClick={() => setNotice(null)}>
           <div
-            role="dialog"
-            aria-modal="true"
-            onClick={(event) => event.stopPropagation()}
-            className="relative w-full max-w-md rounded-2xl border border-[#D4A84F]/50 bg-[#FFF9D8] p-5 text-[#171717] shadow-[8px_8px_24px_rgba(35,0,10,0.16),-3px_-3px_12px_rgba(255,255,255,0.65)] sm:p-7"
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl animate-in fade-in zoom-in duration-300"
           >
-            <button
-              type="button"
-              aria-label={text.close}
-              onClick={() => setNotice(null)}
-              className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-xl text-[#800020] shadow-[2px_2px_5px_rgba(85,25,25,0.07),-2px_-2px_5px_rgba(255,255,255,0.8)] transition-colors hover:bg-[#800020]/10 sm:right-4 sm:top-4"
-            >
-              <X size={20} />
-            </button>
-            <h3 className="mb-3 pr-9 text-xl font-extrabold text-[#800020]">
-              {notice.title}
-            </h3>
-            <p className="text-sm leading-7 text-[#37302D]">
-              {notice.message}
-            </p>
-            <div className="mt-6 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setNotice(null)}
-                className="rounded-xl bg-[#800020] px-5 py-2.5 text-sm font-bold text-white shadow-[3px_3px_7px_rgba(85,25,25,0.12)] transition-colors hover:bg-[#610019] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#800020]"
-              >
-                {text.ok}
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-gray-100 bg-[#FFF9D8] p-5">
+              <h3 className="text-xl font-black text-[#800020]">{notice.title}</h3>
+              <button onClick={() => setNotice(null)} className="rounded-full bg-white p-2 text-gray-500 hover:text-[#800020] shadow-sm">
+                <X size={18} />
+              </button>
+            </div>
+            
+            {/* Content */}
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              {notice.content}
+            </div>
+
+            {/* Footer Action */}
+            <div className="border-t border-gray-100 p-4 bg-gray-50 flex justify-end">
+              <button onClick={() => setNotice(null)} className="rounded-xl bg-[#800020] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#600018] transition-colors flex items-center gap-2">
+                Got it <ArrowRight size={16} />
               </button>
             </div>
           </div>
