@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -18,27 +17,17 @@ type Category = {
 
 const categories: Category[] = [
   {
-    slug: "atta-flour",
-    en: "Atta & Flour",
-    hi: "आटा और मैदा",
-    descEn: "Everyday flour essentials",
-    descHi: "रोज़मर्रा के आटे",
+    slug: "staples", // Atta & Rice dono 'staples' mein aayenge
+    en: "Atta, Rice & Dal",
+    hi: "आटा, चावल और दाल",
+    descEn: "Everyday staples for your kitchen",
+    descHi: "रोज़मर्रा की रसोई ज़रूरतें",
     emoji: "🌾",
     image: "https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=500&q=80",
     color: "from-[#FFF2CC] to-[#F5DDA8]",
   },
   {
-    slug: "rice-dal",
-    en: "Rice & Dals",
-    hi: "चावल और दालें",
-    descEn: "Staples for every kitchen",
-    descHi: "हर रसोई की ज़रूरत",
-    emoji: "🍚",
-    image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=500&q=80",
-    color: "from-[#F8EBDD] to-[#EBD5B9]",
-  },
-  {
-    slug: "oil-ghee",
+    slug: "oil",
     en: "Oil & Ghee",
     hi: "तेल और घी",
     descEn: "Daily cooking essentials",
@@ -48,7 +37,7 @@ const categories: Category[] = [
     color: "from-[#FFF2C6] to-[#EDE1A5]",
   },
   {
-    slug: "spices",
+    slug: "masala",
     en: "Spices & Masala",
     hi: "मसाले",
     descEn: "Add flavour to every meal",
@@ -58,7 +47,7 @@ const categories: Category[] = [
     color: "from-[#FCE4DF] to-[#F1C9C4]",
   },
   {
-    slug: "tea-coffee",
+    slug: "tea",
     en: "Tea & Coffee",
     hi: "चाय और कॉफी",
     descEn: "Your everyday refreshment",
@@ -88,12 +77,12 @@ const categories: Category[] = [
     color: "from-[#F8E5D6] to-[#EAC6A9]",
   },
   {
-    slug: "instant-food",
-    en: "Instant Foods",
-    hi: "इंस्टेंट फूड",
+    slug: "breakfast",
+    en: "Breakfast & Instant",
+    hi: "नाश्ता और इंस्टेंट",
     descEn: "Quick and easy meals",
     descHi: "जल्दी बनने वाला खाना",
-    emoji: "🍜",
+    emoji: "🥣",
     image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=500&q=80",
     color: "from-[#FBE0E3] to-[#F0C3CE]",
   },
