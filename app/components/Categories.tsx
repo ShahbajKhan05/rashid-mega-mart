@@ -2,8 +2,14 @@
 
 import { useState, useLayoutEffect, useRef } from "react";
 import { Search, ArrowUpRight, X } from "lucide-react";
+import Link from "next/link"; // 👈 Link import kiya smooth navigation ke liye
 import { useLanguage } from "./LanguageProvider";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 type Category = {
   slug: string;
@@ -147,7 +153,6 @@ export default function Categories() {
     );
   });
 
-  // GSAP Animation
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
       gsap.fromTo(
@@ -176,7 +181,7 @@ export default function Categories() {
     >
       <div ref={containerRef} className="mx-auto max-w-7xl">
 
-        {/* --- COMPACT HEADER --- */}
+        {/* --- HEADER --- */}
         <div className="flex flex-col items-center justify-between gap-6 md:flex-row md:items-end mb-10">
           <div className="text-center md:text-left max-w-2xl">
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#A47A2C] sm:text-xs">
@@ -192,7 +197,6 @@ export default function Categories() {
             </p>
           </div>
 
-          {/* Count Badge */}
           <div className="flex h-16 min-w-[80px] flex-col items-center justify-center rounded-[20px] bg-gradient-to-br from-[#970027] to-[#600017] px-4 text-white shadow-lg">
             <span className="text-2xl font-black leading-none">
               {filteredCategories.length}
@@ -232,13 +236,14 @@ export default function Categories() {
           </label>
         </div>
 
-        {/* --- PREMIUM RESPONSIVE GRID --- */}
+        {/* --- GRID --- */}
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4 lg:gap-6">
           {filteredCategories.map((category) => {
             const imageFailed = failedImages.includes(category.slug);
 
             return (
-              <a
+              /* 👈 Yahan <a> ko hatakar <Link> kar diya hai */
+              <Link
                 key={category.slug}
                 href={`/products?category=${encodeURIComponent(category.slug)}`}
                 className={`category-card group relative isolate flex min-h-[180px] overflow-hidden rounded-[24px] border border-white/90 bg-gradient-to-br shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:min-h-[220px] sm:rounded-[32px] ${category.color}`}
@@ -298,7 +303,7 @@ export default function Categories() {
                 <span className="absolute bottom-3 right-3 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#800020] shadow-md transition-all duration-300 group-hover:scale-110 group-hover:bg-[#800020] group-hover:text-white sm:h-10 sm:w-10">
                   <ArrowUpRight size={16} strokeWidth={2.5} />
                 </span>
-              </a>
+              </Link>
             );
           })}
         </div>

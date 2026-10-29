@@ -5,7 +5,6 @@ import { LanguageProvider } from "./components/LanguageProvider";
 import { CartProvider } from "./components/CartProvider";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import IntroLoader from "./components/IntroLoader";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -14,8 +13,113 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Rashid Mega Mart | Ghoghar, Rewa",
-  description: "Rashid Mega Mart, Ghoghar, Rewa. Ghar ke zaroori samaan aur value kits.",
+  metadataBase: new URL("https://rashidmegamart.com"),
+  title: {
+    default: "Rashid Mega Mart | Best Grocery Store in Ghoghar, Rewa",
+    template: "%s | Rashid Mega Mart",
+  },
+  description:
+    "Rashid Mega Mart is your trusted neighbourhood grocery store in Ghoghar, Rewa. Order atta, rice, dal, oil, snacks, and daily essentials online with fast delivery.",
+  keywords: [
+    "Rashid Mega Mart",
+    "Grocery store Rewa",
+    "Kirana store Ghoghar",
+    "Online grocery Rewa",
+    "Daily essentials home delivery",
+    "Atta Dal Oil online",
+  ],
+  authors: [{ name: "Rashid Mega Mart" }],
+  creator: "Rashid Mega Mart",
+  publisher: "Rashid Mega Mart",
+  formatDetection: { email: false, address: false, telephone: false },
+
+  // 🔥 GSC verification (Search Console se token leke daalo)
+  verification: {
+    google: "YOUR_GOOGLE_SEARCH_CONSOLE_TOKEN_HERE",
+  },
+
+  openGraph: {
+    title: "Rashid Mega Mart | Your Daily Needs, Our Priority",
+    description:
+      "Order groceries, household items, and value kits online from Rashid Mega Mart. Fast delivery in Rewa.",
+    url: "https://rashidmegamart.com",
+    siteName: "Rashid Mega Mart",
+    images: [
+      {
+        url: "/Logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Rashid Mega Mart Logo",
+      },
+    ],
+    locale: "en_IN",
+    type: "website",
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Rashid Mega Mart | Best Grocery Store in Rewa",
+    description: "Order daily essentials and get them delivered fast.",
+    images: ["/Logo.png"],
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/Logo.png",
+  },
+
+  // ❌ CANONICAL YAHAN NAHI RAKHNA - har page apna canonical dega
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "GroceryStore",
+  name: "Rashid Mega Mart",
+  image: "https://rashidmegamart.com/Logo.png",
+  "@id": "https://rashidmegamart.com",
+  url: "https://rashidmegamart.com",
+  telephone: "+918962531603",
+  priceRange: "₹₹",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Ghoghar",
+    addressLocality: "Rewa",
+    addressRegion: "Madhya Pradesh",
+    postalCode: "486001",
+    addressCountry: "IN",
+  },
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: 24.5362,
+    longitude: 81.3037,
+  },
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ],
+    opens: "07:00",
+    closes: "22:00",
+  },
 };
 
 export default function RootLayout({
@@ -24,16 +128,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // Added data-scroll-behavior="smooth"
-    <html lang="en" className={plusJakartaSans.variable} data-scroll-behavior="smooth">
+    <html
+      lang="en"
+      className={plusJakartaSans.variable}
+      data-scroll-behavior="smooth"
+    >
       <body className={`${plusJakartaSans.className} antialiased bg-[#FFFCF0]`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <LanguageProvider>
           <CartProvider>
-            <IntroLoader />
             <Navbar />
-            <div className="flex min-h-screen flex-col">
-              {children}
-            </div>
+            <main className="flex min-h-screen flex-col">{children}</main>
             <Footer />
           </CartProvider>
         </LanguageProvider>

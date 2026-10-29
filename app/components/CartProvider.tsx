@@ -5,6 +5,7 @@ import { ShoppingCart, Clock, Receipt, MapPin, Trash2, ShieldCheck, ArrowRight, 
 import { useLanguage } from "./LanguageProvider";
 import { motion, AnimatePresence } from "motion/react";
 import { products } from "./data"; 
+import { useRouter } from "next/navigation"; // 🔥 Router import kiya
 
 export type CartProduct = {
   id: string;
@@ -12,7 +13,7 @@ export type CartProduct = {
   nameHi: string;
   price: number;
   image: string;
-  category: string; // <-- YEH ADD KIYA (Error Fix)
+  category: string;
 };
 
 export type CustomCartRequest = {
@@ -52,28 +53,42 @@ export function useCart() {
   return context;
 }
 
-// WhatsApp Icon Component
-function WhatsAppIcon({ className = "h-5 w-5" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-    </svg>
-  );
-}
-
 export function CartProvider({ children }: { children: ReactNode }) {
   const { language } = useLanguage();
   const isHindi = language === "hi";
+  const router = useRouter(); // 🔥 Router use kiya
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [customRequests, setCustomRequests] = useState<CustomCartRequest[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [customerLocation, setCustomerLocation] = useState("Ghoghar, Rewa");
+  const [isMounted, setIsMounted] = useState(false); 
 
   useEffect(() => {
-    const savedLocation = localStorage.getItem("rmm_location");
-    if (savedLocation) setCustomerLocation(savedLocation);
-  }, [cartOpen]);
+    try {
+      const savedCart = localStorage.getItem("rmm_cart_items");
+      if (savedCart) setCartItems(JSON.parse(savedCart));
+      
+      const savedCustom = localStorage.getItem("rmm_custom_requests");
+      if (savedCustom) setCustomRequests(JSON.parse(savedCustom));
+      
+      const savedLocation = localStorage.getItem("rmm_location");
+      if (savedLocation) setCustomerLocation(savedLocation);
+    } catch (error) {
+      console.error("Error loading cart data:", error);
+    }
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem("rmm_cart_items", JSON.stringify(cartItems));
+  }, [cartItems, isMounted]);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    localStorage.setItem("rmm_custom_requests", JSON.stringify(customRequests));
+  }, [customRequests, isMounted]);
 
   useEffect(() => {
     document.body.style.overflow = cartOpen ? "hidden" : "unset";
@@ -119,206 +134,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [cartItems, customRequests, cartCount, cartTotal, cartOpen]
   );
 
-  // --- SMART SUGGESTIONS LOGIC ---
   const suggestions = useMemo(() => {
     if (cartItems.length === 0) {
       return products.slice(0, 4); 
     }
-    
     const cartProductIds = new Set(cartItems.map(item => item.id));
     const categoriesInCart = new Set(cartItems.map(item => item.category));
-    
     let related = products.filter(p => !cartProductIds.has(p.id) && categoriesInCart.has(p.category));
-    
     if (related.length < 4) {
       const others = products.filter(p => !cartProductIds.has(p.id) && !categoriesInCart.has(p.category));
       related = [...related, ...others];
     }
-    
     return related.slice(0, 4);
   }, [cartItems]);
 
-  // --- WHATSAPP MESSAGE FORMAT ---
-  const orderLines = [
-    isHindi ? "नमस्ते राशिद मेगा मार्ट, मेरा ऑर्डर:" : "Hello Rashid Mega Mart, my order:",
-    "",
-    ...cartItems.map((item) => `🛒 ${isHindi ? item.nameHi : item.name} × ${item.quantity} = ${money(item.price * item.quantity)}`),
-    ...customRequests.map((item) => `✨ ${isHindi ? "कस्टम सामान" : "CUSTOM ITEM"}: ${item.name} × ${item.quantity}${item.note ? ` (${item.note})` : ""} — ${isHindi ? "कीमत बाकी" : "Price pending"}`),
-    "",
-    `💰 ${isHindi ? "सबटोटल" : "Subtotal"}: ${money(cartTotal)}`,
-    ...(customRequests.length ? [isHindi ? "⚠️ कस्टम सामान की कीमत दुकान से कन्फर्म होगी।" : "⚠️ Custom item prices need store confirmation."] : []),
-    "",
-    `📍 ${isHindi ? "डिलीवरी लोकेशन" : "Delivery Location"}: ${customerLocation}`,
-    "",
-    isHindi ? "कृपया मेरा ऑर्डर कन्फर्म करें। धन्यवाद!" : "Please confirm my order. Thank you!"
-  ];
-
-  const orderMessage = orderLines.join("\n");
-
-  // --- PREMIUM RECEIPT PRINTER ---
-  function printReceipt() {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) return;
-
-    const billNo = `RMM${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}${Math.floor(1000 + Math.random() * 9000)}`;
-    const currentDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const currentTime = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    
-    const discountAmount = Math.round(cartTotal * 0.05);
-    const grandTotal = cartTotal - discountAmount;
-    const deliveryCharge = 0;
-
-    const itemsHtml = cartItems.map((item, index) => `
-      <tr>
-        <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: center; color: #555; font-weight: 600;">${index + 1}</td>
-        <td style="padding: 10px 8px; border-bottom: 1px solid #eee;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <img src="${item.image}" alt="" style="width: 36px; height: 36px; object-fit: contain; background: #fff; border-radius: 6px;" />
-            <span style="font-weight: 600; color: #333;">${isHindi ? item.nameHi : item.name}</span>
-          </div>
-        </td>
-        <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: center; font-weight: 600;">${item.quantity}</td>
-        <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: right;">₹${item.price}</td>
-        <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: right; font-weight: 700; color: #800020;">₹${item.price * item.quantity}</td>
-      </tr>
-    `).join('');
-
-    const customHtml = customRequests.map((item, index) => `
-      <tr>
-        <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: center; color: #555;">${cartItems.length + index + 1}</td>
-        <td style="padding: 10px 8px; border-bottom: 1px solid #eee;">
-           <span style="font-weight: 600; color: #333;">${item.name}</span>
-           <span style="font-size: 10px; color: #D4A84F; font-weight: 800; margin-left: 5px; text-transform: uppercase;">(Custom)</span>
-        </td>
-        <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
-        <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: right; color: #888;">TBD</td>
-        <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: right; color: #888;">TBD</td>
-      </tr>
-    `).join('');
-
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Rashid Mega Mart - Receipt</title>
-          <style>
-            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-            * { box-sizing: border-box; margin: 0; padding: 0; }
-            body { font-family: 'Inter', sans-serif; padding: 30px; color: #333; max-width: 800px; margin: 0 auto; background: #fff; }
-            .top-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #800020; padding-bottom: 20px; margin-bottom: 20px; }
-            .brand { display: flex; align-items: center; gap: 15px; }
-            .brand img { height: 65px; object-fit: contain; }
-            .brand-text h1 { margin: 0; font-size: 32px; font-weight: 900; color: #800020; line-height: 1; letter-spacing: -1px; }
-            .brand-text h2 { margin: 2px 0 0 0; font-size: 18px; font-weight: 800; color: #138047; letter-spacing: 2px; }
-            .brand-text p { margin: 4px 0 0 0; font-size: 11px; color: #666; font-weight: 600; font-style: italic; }
-            .contact-info { font-size: 12px; color: #444; display: flex; flex-direction: column; gap: 6px; text-align: right; font-weight: 500; }
-            .ribbon { background: #800020; color: #FFF9D8; text-align: center; padding: 8px; font-size: 11px; font-weight: 800; letter-spacing: 3px; border-radius: 4px; margin-bottom: 25px; }
-            .receipt-title { text-align: center; font-size: 26px; font-weight: 900; color: #800020; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; }
-            .meta-grid { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 20px; border-bottom: 2px dashed #ddd; padding-bottom: 15px; background: #FFFCF5; padding: 15px; border-radius: 8px; }
-            .meta-item strong { display: block; font-size: 10px; color: #888; text-transform: uppercase; margin-bottom: 3px; }
-            .meta-item span { font-weight: 700; color: #111; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
-            th { background: #FFF9D8; padding: 12px 8px; text-align: left; font-size: 12px; font-weight: 800; color: #800020; border-bottom: 2px solid #800020; text-transform: uppercase; letter-spacing: 0.5px; }
-            th:nth-child(1) { text-align: center; }
-            th:nth-child(3), th:nth-child(4), th:nth-child(5) { text-align: right; }
-            td { font-size: 13px; color: #444; vertical-align: middle; }
-            .totals-area { display: flex; justify-content: space-between; align-items: flex-start; border-top: 2px dashed #ddd; padding-top: 20px; }
-            .qr-box { background: #FFF0F5; padding: 20px; border-radius: 12px; display: flex; align-items: center; gap: 15px; width: 45%; border: 1px solid #FFE4E8; }
-            .qr-box img { width: 90px; height: 90px; border-radius: 8px; }
-            .qr-box h4 { margin: 0; font-size: 15px; color: #800020; font-weight: 800; margin-bottom: 4px; }
-            .qr-box p { margin: 0; font-size: 11px; color: #666; font-weight: 500; }
-            .totals-table { width: 45%; font-size: 14px; }
-            .totals-table div { display: flex; justify-content: space-between; padding: 8px 0; font-weight: 600; color: #555; }
-            .totals-table .discount { color: #138047; font-weight: 700; }
-            .totals-table .grand-total { background: #FFF9D8; padding: 15px; border-radius: 10px; margin-top: 10px; font-weight: 900; font-size: 20px; color: #800020; border: 1px solid #D4A84F; }
-            .footer-features { display: flex; justify-content: space-between; margin-top: 35px; border-top: 1px solid #eee; padding-top: 20px; font-size: 11px; font-weight: 600; color: #555; }
-            .thank-you { text-align: center; margin-top: 35px; padding: 20px; background: #FFF9F0; border-radius: 15px; font-size: 16px; font-weight: 800; color: #800020; font-style: italic; border: 1px dashed #D4A84F; }
-            .bottom-bar { text-align: center; font-size: 11px; color: #999; margin-top: 30px; text-transform: uppercase; letter-spacing: 2px; border-top: 2px solid #138047; padding-top: 15px; font-weight: 700; }
-            @media print { body { padding: 0; } .qr-box { background: transparent; border: 1px solid #ddd; } }
-          </style>
-        </head>
-        <body>
-          <div class="top-header">
-            <div class="brand">
-              <img src="/Logo.png" alt="Logo" />
-              <div class="brand-text">
-                <h1>RASHID</h1>
-                <h2>MEGA MART</h2>
-                <p>— Your Daily Needs, Our Priority —</p>
-              </div>
-            </div>
-            <div class="contact-info">
-              <span>📍 Ghoghar, Rewa, MP - 486001</span>
-              <span>📞 +91 89625 31603</span>
-              <span>✉️ support@rashidmegamart.com</span>
-            </div>
-          </div>
-
-          <div class="ribbon">GROCERY | HOUSEHOLD | DAILY ESSENTIALS | VALUE KITS</div>
-          <div class="receipt-title">SHOPPING RECEIPT</div>
-
-          <div class="meta-grid">
-            <div class="meta-item"><strong>Bill No:</strong><span>${billNo}</span></div>
-            <div class="meta-item"><strong>Date:</strong><span>${currentDate}</span></div>
-            <div class="meta-item"><strong>Time:</strong><span>${currentTime}</span></div>
-            <div class="meta-item"><strong>Payment:</strong><span>WhatsApp Order</span></div>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th style="width: 50px;">S.No.</th>
-                <th>Item</th>
-                <th style="width: 60px;">Qty</th>
-                <th style="width: 100px;">Price (₹)</th>
-                <th style="width: 100px;">Total (₹)</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsHtml}
-              ${customHtml}
-            </tbody>
-          </table>
-
-          <div class="totals-area">
-            <div class="qr-box">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://wa.me/918962531603" alt="QR Code" />
-              <div>
-                <h4>Order via WhatsApp</h4>
-                <p>Scan to reorder or share<br/> this bill directly on WhatsApp.</p>
-              </div>
-            </div>
-            
-            <div class="totals-table">
-              <div><span>Subtotal</span><span>₹${cartTotal}</span></div>
-              <div class="discount"><span>Discount (5%)</span><span>- ₹${discountAmount}</span></div>
-              <div><span>Delivery Charge</span><span>${deliveryCharge === 0 ? 'FREE' : `₹${deliveryCharge}`}</span></div>
-              <div class="grand-total"><span>Grand Total</span><span>₹${grandTotal}</span></div>
-            </div>
-          </div>
-
-          <div class="footer-features">
-            <div>🚚 Estimated Delivery: 30-45 Mins</div>
-            <div>✅ Quality Products Best Brands</div>
-            <div>🛍️ Wide Range Daily Essentials</div>
-            <div>🤝 Your Trust Our Priority</div>
-          </div>
-
-          <div class="thank-you">
-            ❤️ Thank you for shopping with <br/> Rashid Mega Mart!
-          </div>
-
-          <div class="bottom-bar">
-            — YOUR DAILY NEEDS, OUR PRIORITY —
-          </div>
-
-          <script>
-            setTimeout(function() { window.print(); }, 1000);
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-  }
+  const handleCheckout = () => {
+    setCartOpen(false);
+    router.push("/checkout");
+  };
 
   return (
     <CartContext.Provider value={value}>
@@ -517,22 +350,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
                     {customRequests.length > 0 && <p className="mb-3 text-[10px] leading-relaxed text-[#76665C]">{isHindi ? "कस्टम सामान की कीमत इस सबटोटल में शामिल नहीं है।" : "Custom requests are excluded from this subtotal."}</p>}
 
                     <div className="flex flex-col gap-2">
-                      <a 
-                        href={`https://wa.me/918962531603?text=${encodeURIComponent(orderMessage)}`} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
+                      {/* 🔥 NAYA: Sirf Proceed to Checkout Button */}
+                      <button 
+                        onClick={handleCheckout}
                         className="flex min-h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-[#138047] px-4 text-sm font-black text-white shadow-lg transition hover:bg-[#0D6837] active:scale-95"
                       >
-                        <WhatsAppIcon className="h-5 w-5" />
-                        {isHindi ? "WhatsApp पर ऑर्डर करें" : "Order on WhatsApp"}
-                      </a>
+                         {isHindi ? "चेकआउट करें" : "Proceed to Checkout"} <ArrowRight size={18} />
+                      </button>
 
                       <button
-                        onClick={printReceipt}
+                        onClick={() => {
+                          setCartOpen(false);
+                          router.push("/cart");
+                        }}
                         className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border-2 border-[#30251F]/10 bg-transparent px-4 text-xs font-bold text-[#30251F] transition hover:bg-gray-50"
                       >
-                        <Receipt size={16} />
-                        {isHindi ? "रसीद डाउनलोड करें" : "Download Receipt"}
+                        {isHindi ? "पूरा कार्ट देखें" : "View Full Cart"}
                       </button>
                     </div>
                   </div>
