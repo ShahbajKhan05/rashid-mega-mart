@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import Image from "next/image";
 
@@ -8,8 +8,14 @@ export default function IntroLoader() {
   const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useLayoutEffect(() => {
-    document.body.style.overflow = "hidden";
+  // Server Side Rendering (SSR) warning se bachne ke liye
+  const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useEffect : useEffect;
+
+  useIsomorphicLayoutEffect(() => {
+    // 1. Body scroll lock properly handle kiya
+    if (isLoading) {
+      document.body.style.overflow = "hidden";
+    }
 
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
@@ -19,7 +25,6 @@ export default function IntroLoader() {
         }
       });
 
-      // Fixed: originY -> transformOrigin
       gsap.set(".loader-curtain-panel", { scaleY: 1, transformOrigin: "top" });
       gsap.set(".logo-mask", { clipPath: "circle(0% at 50% 50%)" });
       gsap.set(".logo-img", { scale: 1.2 });
@@ -48,39 +53,61 @@ export default function IntroLoader() {
   }, []);
 
   if (!isLoading) return null;
+  
   const brandName = "RASHID MEGA MART";
 
   return (
-    <div ref={containerRef} className="fixed inset-0 z-[99999] flex items-center justify-center overflow-hidden">
-      <div className="absolute inset-0 z-0 flex h-full w-full">
-        <div className="loader-curtain-panel h-full w-1/3 bg-[#FFF9D8]" />
-        <div className="loader-curtain-panel h-full w-1/3 bg-[#FFF9D8]" />
-        <div className="loader-curtain-panel h-full w-1/3 bg-[#FFF9D8]" />
-      </div>
-      <div className="relative z-10 flex flex-col items-center w-full px-4">
-        <div className="loader-logo-container relative flex h-32 w-32 sm:h-40 sm:w-40 items-center justify-center">
-          <div className="ring-1 absolute inset-0 rounded-full border-[1.5px] border-[#D4A84F] border-dashed" />
-          <div className="ring-2 absolute inset-3 sm:inset-4 rounded-full border border-[#5A0014]/20" />
-          <div className="logo-mask relative flex h-24 w-24 sm:h-32 sm:w-32 items-center justify-center rounded-full bg-white shadow-[0_15px_35px_rgba(90,0,20,0.15)]">
-            <Image src="/Logo.png" alt="Rashid Mega Mart" width={100} height={100} className="logo-img h-16 w-16 sm:h-24 sm:w-24 object-contain" priority />
+    <>
+      {/* 🔥 SEO FIX: Google aur Screen Readers ke liye Hidden H1 */}
+      <h1 className="sr-only">Rashid Mega Mart - Best Grocery Store in Ghoghar, Rewa</h1>
+
+      <div 
+        ref={containerRef} 
+        className="fixed inset-0 z-[99999] flex items-center justify-center overflow-hidden"
+        aria-hidden="true" // Accessibility fix: Loader ko screen reader se chupao
+      >
+        <div className="absolute inset-0 z-0 flex h-full w-full">
+          <div className="loader-curtain-panel h-full w-1/3 bg-[#FFF9D8]" />
+          <div className="loader-curtain-panel h-full w-1/3 bg-[#FFF9D8]" />
+          <div className="loader-curtain-panel h-full w-1/3 bg-[#FFF9D8]" />
+        </div>
+        
+        <div className="relative z-10 flex flex-col items-center w-full px-4">
+          <div className="loader-logo-container relative flex h-32 w-32 sm:h-40 sm:w-40 items-center justify-center">
+            <div className="ring-1 absolute inset-0 rounded-full border-[1.5px] border-[#D4A84F] border-dashed" />
+            <div className="ring-2 absolute inset-3 sm:inset-4 rounded-full border border-[#5A0014]/20" />
+            <div className="logo-mask relative flex h-24 w-24 sm:h-32 sm:w-32 items-center justify-center rounded-full bg-white shadow-[0_15px_35px_rgba(90,0,20,0.15)]">
+              <Image 
+                src="/Logo.png" 
+                alt="Rashid Mega Mart Logo" 
+                width={100} 
+                height={100} 
+                className="logo-img h-16 w-16 sm:h-24 sm:w-24 object-contain" 
+                priority 
+              />
+            </div>
+          </div>
+          
+          {/* Visual Text (Animation ke liye) */}
+          <div className="mt-6 sm:mt-8 flex gap-[2px] sm:gap-1 overflow-hidden text-lg sm:text-2xl md:text-3xl font-black text-[#5A0014] tracking-[0.1em] sm:tracking-[0.2em]">
+            {brandName.split("").map((char, index) => (
+              <span key={index} className="text-char inline-block origin-bottom">
+                {char === " " ? "\u00A0" : char}
+              </span>
+            ))}
+          </div>
+
+          {/* Visual Credit */}
+          <div className="credit-text mt-8 sm:mt-12 flex flex-col items-center gap-1.5">
+            <span className="text-[8px] sm:text-[9px] font-bold tracking-[0.2em] sm:tracking-[0.3em] text-[#5A0014]/50 uppercase">Crafted with Love by</span>
+            <div className="flex items-center gap-2">
+              <span className="h-px w-4 sm:w-6 bg-[#D4A84F]" />
+              <span className="text-[10px] sm:text-xs font-black text-[#D4A84F] tracking-[0.15em] sm:tracking-[0.2em] uppercase">NOOR TECHNOLOGIES</span>
+              <span className="h-px w-4 sm:w-6 bg-[#D4A84F]" />
+            </div>
           </div>
         </div>
-        <div className="mt-6 sm:mt-8 flex gap-[2px] sm:gap-1 overflow-hidden text-lg sm:text-2xl md:text-3xl font-black text-[#5A0014] tracking-[0.1em] sm:tracking-[0.2em]">
-          {brandName.split("").map((char, index) => (
-            <span key={index} className="text-char inline-block origin-bottom">
-              {char === " " ? "\u00A0" : char}
-            </span>
-          ))}
-        </div>
-        <div className="credit-text mt-8 sm:mt-12 flex flex-col items-center gap-1.5">
-          <span className="text-[8px] sm:text-[9px] font-bold tracking-[0.2em] sm:tracking-[0.3em] text-[#5A0014]/50 uppercase">Crafted with Love by</span>
-          <div className="flex items-center gap-2">
-            <span className="h-px w-4 sm:w-6 bg-[#D4A84F]" />
-            <span className="text-[10px] sm:text-xs font-black text-[#D4A84F] tracking-[0.15em] sm:tracking-[0.2em] uppercase">NOOR TECHNOLOGIES</span>
-            <span className="h-px w-4 sm:w-6 bg-[#D4A84F]" />
-          </div>
-        </div>
       </div>
-    </div>
+    </>
   );
 }
