@@ -46,7 +46,8 @@ export const metadata: Metadata = {
     siteName: "Rashid Mega Mart",
     images: [
       {
-        url: "/opengraph-image", // 🔥 .tsx HATA DO
+        // 🔥 YAHAN POORA URL DAALA HAI
+        url: "https://rashid-mega-mart.vercel.app/opengraph-image", 
         width: 1200,
         height: 630,
         alt: "Rashid Mega Mart Logo",
@@ -60,7 +61,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Rashid Mega Mart | Best Grocery Store in Rewa",
     description: "Order daily essentials and get them delivered fast.",
-    images: ["/opengraph-image"], // 🔥 .tsx HATA DO
+    // 🔥 YAHAN BHI POORA URL DAALA HAI
+    images: ["https://rashid-mega-mart.vercel.app/opengraph-image"], 
   },
   robots: {
     index: true,
@@ -79,8 +81,6 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
     apple: "/Logo.png",
   },
-
-  // ❌ CANONICAL YAHAN NAHI RAKHNA - har page apna canonical dega
 };
 
 const jsonLd = {
