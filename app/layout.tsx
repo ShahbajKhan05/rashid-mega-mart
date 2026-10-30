@@ -13,7 +13,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://rashidmegamart.com"),
+  metadataBase: new URL("https://rashid-mega-mart.vercel.app"),
   title: {
     default: "Rashid Mega Mart | Best Grocery Store in Ghoghar, Rewa",
     template: "%s | Rashid Mega Mart",
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     title: "Rashid Mega Mart | Your Daily Needs, Our Priority",
     description:
       "Order groceries, household items, and value kits online from Rashid Mega Mart. Fast delivery in Rewa.",
-    url: "https://rashidmegamart.com",
+    url: "https://rashid-mega-mart.vercel.app",
     siteName: "Rashid Mega Mart",
     images: [
       {
