@@ -13,6 +13,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  // 🔥 Yahan Vercel ka link rakha hai taaki Facebook confuse na ho
   metadataBase: new URL("https://rashid-mega-mart.vercel.app"),
   title: {
     default: "Rashid Mega Mart | Best Grocery Store in Ghoghar, Rewa",
@@ -33,7 +34,6 @@ export const metadata: Metadata = {
   publisher: "Rashid Mega Mart",
   formatDetection: { email: false, address: false, telephone: false },
 
-  // 🔥 GSC verification (Search Console se token leke daalo)
   verification: {
     google: "YOUR_GOOGLE_SEARCH_CONSOLE_TOKEN_HERE",
   },
@@ -44,25 +44,16 @@ export const metadata: Metadata = {
       "Order groceries, household items, and value kits online from Rashid Mega Mart. Fast delivery in Rewa.",
     url: "https://rashid-mega-mart.vercel.app",
     siteName: "Rashid Mega Mart",
-    images: [
-      {
-        // 🔥 YAHAN POORA URL DAALA HAI
-        url: "/opengraph-image.png", 
-        width: 1200,
-        height: 630,
-        alt: "Rashid Mega Mart Logo",
-      },
-    ],
     locale: "en_IN",
     type: "website",
+    // ❌ YAHAN SE IMAGES WALI LINE HATA DI HAI
   },
 
   twitter: {
     card: "summary_large_image",
     title: "Rashid Mega Mart | Best Grocery Store in Rewa",
     description: "Order daily essentials and get them delivered fast.",
-    // 🔥 YAHAN BHI POORA URL DAALA HAI
-    images: ["https://rashid-mega-mart.vercel.app/opengraph-image"], 
+    // ❌ YAHAN SE BHI IMAGES WALI LINE HATA DI HAI
   },
   robots: {
     index: true,
@@ -79,7 +70,7 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
-    apple: "/Logo.png",
+    apple: "/Logo.png", // Icons me logo rehne do
   },
 };
 
@@ -87,9 +78,9 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "GroceryStore",
   name: "Rashid Mega Mart",
-  image: "https://rashidmegamart.com/Logo.png",
-  "@id": "https://rashidmegamart.com",
-  url: "https://rashidmegamart.com",
+  image: "https://rashid-mega-mart.vercel.app/Logo.png",
+  "@id": "https://rashid-mega-mart.vercel.app",
+  url: "https://rashid-mega-mart.vercel.app",
   telephone: "+918962531603",
   priceRange: "₹₹",
   address: {
