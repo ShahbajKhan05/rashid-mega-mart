@@ -1,13 +1,23 @@
+// app/loyalty/page.tsx
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import {
-  Crown, Gift, CheckCircle2, History, Sparkles, 
+  Crown, Gift, CheckCircle2, History, Sparkles,
   X, Lock, Ticket, Copy, Check, Phone, User
-} from "lucide-react"; 
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
+
+type CouponRecord = {
+  code: string;
+  phone: string;
+  status?: "active" | "redeemed";
+  discount?: number;
+  minBill?: number;
+  createdAt?: string;
+};
 
 export default function LoyaltyPage() {
   const router = useRouter();
@@ -18,7 +28,7 @@ export default function LoyaltyPage() {
   const [step, setStep] = useState<"login" | "otp" | "dashboard">("login");
   const [customer, setCustomer] = useState<any>(null);
   const [error, setError] = useState("");
-  
+
   const [rotateX, setRotateX] = useState(0);
   const [rotateY, setRotateY] = useState(0);
 
@@ -26,47 +36,108 @@ export default function LoyaltyPage() {
   const [couponCode, setCouponCode] = useState("");
   const [copied, setCopied] = useState(false);
 
-  // 🔥 Sync Function jo storage aur orders check karega
+  // --- Helpers: normalize coupons (array ya object dono se phone ka active code nikalo) ---
+  const findActiveCouponForPhone = (rawCoupons: any, phoneToFind: string): string => {
+    if (!rawCoupons || !phoneToFind) return "";
+
+    // Array format (naya)
+    if (Array.isArray(rawCoupons)) {
+      const found = (rawCoupons as CouponRecord[]).find(
+        c => c.phone === phoneToFind && (c.status === "active" || c.status === undefined)
+      );
+      return found?.code || "";
+    }
+
+    // Object format (purana): { phone: code }
+    if (typeof rawCoupons === "object" && rawCoupons[phoneToFind]) {
+      return String(rawCoupons[phoneToFind]);
+    }
+
+    return "";
+  };
+
+  const removeCouponForPhone = (rawCoupons: any, phoneToRemove: string) => {
+    if (!rawCoupons || !phoneToRemove) return rawCoupons;
+
+    if (Array.isArray(rawCoupons)) {
+      return (rawCoupons as CouponRecord[]).map(c =>
+        c.phone === phoneToRemove ? { ...c, status: "redeemed" as const } : c
+      );
+    }
+
+    if (typeof rawCoupons === "object") {
+      const clone = { ...rawCoupons };
+      delete clone[phoneToRemove];
+      return clone;
+    }
+
+    return rawCoupons;
+  };
+
+  // 🔥 Sync function — coupons, customer, name — sab sync karta hai
   const syncData = () => {
+    if (typeof window === "undefined") return;
     const loggedInPhone = localStorage.getItem("rmm_loyalty_logged_in");
     if (!loggedInPhone) return;
 
+    // --- Customer sync ---
     const allCustomers = JSON.parse(localStorage.getItem("rmm_loyalty_customers") || "[]");
     const existing = allCustomers.find((c: any) => c.phone === loggedInPhone);
-    
+
     if (existing) {
       const savedUser = localStorage.getItem("rmm_user");
       let updatedCustomer = { ...existing };
+
       if (savedUser) {
-        const parsedUser = JSON.parse(savedUser);
-        if (parsedUser.name && parsedUser.name !== existing.name) {
-          updatedCustomer.name = parsedUser.name;
-          const updatedList = allCustomers.map((c: any) => c.phone === loggedInPhone ? updatedCustomer : c);
-          localStorage.setItem("rmm_loyalty_customers", JSON.stringify(updatedList));
-        }
+        try {
+          const parsedUser = JSON.parse(savedUser);
+          if (parsedUser?.name && parsedUser.name !== existing.name) {
+            updatedCustomer.name = parsedUser.name;
+            const updatedList = allCustomers.map((c: any) =>
+              c.phone === loggedInPhone ? updatedCustomer : c
+            );
+            localStorage.setItem("rmm_loyalty_customers", JSON.stringify(updatedList));
+          }
+        } catch {}
       }
       setCustomer(updatedCustomer);
     }
 
-    // 🔥 COUPON CHECK
-    const allCoupons = JSON.parse(localStorage.getItem("rmm_coupons") || "{}");
-    if (allCoupons[loggedInPhone]) {
-      // Check karo ki koi order "Out for delivery" ya "Delivered" me hai kya?
-      const allOrders = JSON.parse(localStorage.getItem("rmm_orders") || "[]");
-      const activeOrderWithCoupon = allOrders.find((o: any) => 
-        o.couponUsed === allCoupons[loggedInPhone] && (o.status === "out-for-delivery" || o.status === "delivered")
-      );
+    // --- Coupon sync ---
+    const rawCoupons = JSON.parse(localStorage.getItem("rmm_coupons") || "{}");
+    const activeCode = findActiveCouponForPhone(rawCoupons, loggedInPhone);
 
-      if (activeOrderWithCoupon) {
-        // Agar order deliver ya on-way hai, toh coupon delete kar do
-        delete allCoupons[loggedInPhone];
-        localStorage.setItem("rmm_coupons", JSON.stringify(allCoupons));
-        setCouponCode("");
-      } else {
-        setCouponCode(allCoupons[loggedInPhone]);
-      }
+    if (!activeCode) {
+      setCouponCode("");
+      return;
+    }
+
+    // Check karo: koi order (POS ya Website) jisme yeh coupon use ho gaya aur
+    // wo order ab "delivered"/"completed"/"out-for-delivery" me chala gaya ho —
+    // toh coupon delete kar do.
+    const posOrders = JSON.parse(localStorage.getItem("rmm_orders") || "[]");
+    const webOrders = JSON.parse(localStorage.getItem("rmm_website_orders") || "[]");
+    const allOrders = [...posOrders, ...webOrders];
+
+    const usedOrder = allOrders.find((o: any) => {
+      const sameCoupon = o.couponUsed === activeCode;
+      if (!sameCoupon) return false;
+      const s = (o.status || "").toLowerCase();
+      // POS: "Completed" | Website: "Delivered" | Transitional: "out-for-delivery"
+      return (
+        s === "completed" ||
+        s === "delivered" ||
+        s === "out-for-delivery" ||
+        s === "out for delivery"
+      );
+    });
+
+    if (usedOrder) {
+      const cleaned = removeCouponForPhone(rawCoupons, loggedInPhone);
+      localStorage.setItem("rmm_coupons", JSON.stringify(cleaned));
+      setCouponCode("");
     } else {
-      setCouponCode(""); 
+      setCouponCode(activeCode);
     }
   };
 
@@ -76,7 +147,10 @@ export default function LoyaltyPage() {
     if (loggedInPhone) {
       const allCustomers = JSON.parse(localStorage.getItem("rmm_loyalty_customers") || "[]");
       const existing = allCustomers.find((c: any) => c.phone === loggedInPhone);
-      if (existing) setStep("dashboard");
+      if (existing) {
+        setCustomer(existing);
+        setStep("dashboard");
+      }
     }
 
     window.addEventListener("focus", syncData);
@@ -86,6 +160,7 @@ export default function LoyaltyPage() {
       window.removeEventListener("focus", syncData);
       window.removeEventListener("storage", syncData);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCardMouseMove = (e: React.MouseEvent) => {
@@ -113,21 +188,30 @@ export default function LoyaltyPage() {
       setError("Invalid OTP. Use 1234 for demo.");
       return;
     }
-    
+
     const allCustomers = JSON.parse(localStorage.getItem("rmm_loyalty_customers") || "[]");
     const existing = allCustomers.find((c: any) => c.phone === phone);
-    
+
     if (existing) {
       setCustomer(existing);
-      localStorage.setItem("rmm_loyalty_logged_in", phone); 
+      localStorage.setItem("rmm_loyalty_logged_in", phone);
     } else {
-      const newProfile = { phone, name, stamps: 0, lifetime_stamps: 0, rewards: 0, history: [], tier: "Silver" };
+      const newProfile = {
+        phone,
+        name: name || "Valued Customer",
+        stamps: 0,
+        lifetime_stamps: 0,
+        rewards: 0,
+        totalSpent: 0,
+        history: [],
+        tier: "Silver",
+      };
       const updatedList = [...allCustomers, newProfile];
       localStorage.setItem("rmm_loyalty_customers", JSON.stringify(updatedList));
       setCustomer(newProfile);
       localStorage.setItem("rmm_loyalty_logged_in", phone);
     }
-    syncData(); 
+    syncData();
     setStep("dashboard");
   };
 
@@ -142,18 +226,48 @@ export default function LoyaltyPage() {
 
   const generateCoupon = () => {
     if (couponCode) {
-      setShowCoupon(true); 
+      setShowCoupon(true);
       return;
     }
+
+    // Reward nahi hai toh coupon nahi banega
+    if (!customer || (customer.rewards || 0) <= 0) {
+      setError("Pehle 8 stamps complete karke reward kamao.");
+      return;
+    }
+
     const randomStr = Math.random().toString(36).substring(2, 6).toUpperCase();
     const newCode = `RMM-75-${randomStr}`;
-    
+
+    // Coupon save karo (array + legacy object dono formats me)
+    const rawCoupons = JSON.parse(localStorage.getItem("rmm_coupons") || "{}");
+    const newRecord: CouponRecord = {
+      code: newCode,
+      phone: customer.phone,
+      status: "active",
+      discount: 75,
+      minBill: 699,
+      createdAt: new Date().toISOString(),
+    };
+
+    if (Array.isArray(rawCoupons)) {
+      localStorage.setItem("rmm_coupons", JSON.stringify([newRecord, ...rawCoupons]));
+    } else {
+      const clone = { ...rawCoupons };
+      clone[customer.phone] = newCode;
+      localStorage.setItem("rmm_coupons", JSON.stringify(clone));
+    }
+
+    // Reward decrement karo
+    const allCustomers = JSON.parse(localStorage.getItem("rmm_loyalty_customers") || "[]");
+    const updated = allCustomers.map((c: any) =>
+      c.phone === customer.phone ? { ...c, rewards: Math.max(0, (c.rewards || 0) - 1) } : c
+    );
+    localStorage.setItem("rmm_loyalty_customers", JSON.stringify(updated));
+    setCustomer({ ...customer, rewards: Math.max(0, (customer.rewards || 0) - 1) });
+
     setCouponCode(newCode);
     setShowCoupon(true);
-
-    const allCoupons = JSON.parse(localStorage.getItem("rmm_coupons") || "{}");
-    allCoupons[customer.phone] = newCode;
-    localStorage.setItem("rmm_coupons", JSON.stringify(allCoupons));
   };
 
   const copyToClipboard = () => {
@@ -168,12 +282,12 @@ export default function LoyaltyPage() {
       <main className="min-h-screen bg-[#FFF9D8] flex items-center justify-center px-4 pt-24 pb-12">
         <div className="w-full max-w-md overflow-hidden rounded-[32px] bg-white shadow-2xl border border-[#800020]/10">
           <div className="relative h-32 sm:h-36 w-full bg-[#800020]">
-             <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800&auto=format&fit=crop" alt="Store" className="h-full w-full object-cover opacity-40" />
-             <div className="absolute inset-0 bg-gradient-to-t from-[#800020] to-transparent" />
-             <div className="absolute bottom-4 left-5">
-               <h1 className="text-xl sm:text-2xl font-black text-white">Smart Saver Club</h1>
-               <p className="text-[9px] sm:text-[10px] font-bold text-[#D4A84F] uppercase tracking-widest">Rashid Mega Mart</p>
-             </div>
+            <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=800&auto=format&fit=crop" alt="Store" className="h-full w-full object-cover opacity-40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#800020] to-transparent" />
+            <div className="absolute bottom-4 left-5">
+              <h1 className="text-xl sm:text-2xl font-black text-white">Smart Saver Club</h1>
+              <p className="text-[9px] sm:text-[10px] font-bold text-[#D4A84F] uppercase tracking-widest">Rashid Mega Mart</p>
+            </div>
           </div>
           <div className="p-5 sm:p-8">
             <form onSubmit={handleSendOtp} className="flex flex-col gap-4">
@@ -213,12 +327,14 @@ export default function LoyaltyPage() {
   }
 
   // --- DASHBOARD ---
-  const tierColor = customer.tier === "Platinum" ? "text-gray-300" : customer.tier === "Gold" ? "text-[#D4A84F]" : "text-gray-400";
+  const tierColor = customer?.tier === "Platinum" ? "text-gray-300" : customer?.tier === "Gold" ? "text-[#D4A84F]" : "text-gray-400";
+  const stamps = customer?.stamps || 0;
+  const rewards = customer?.rewards || 0;
 
   return (
     <main className="min-h-screen bg-[#FFF9D8] px-4 py-8 sm:py-12 pt-24" style={{ perspective: "1500px" }}>
       <div className="mx-auto max-w-md">
-        
+
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-xl font-black text-[#800020]">Smart Saver Club</h1>
@@ -227,8 +343,8 @@ export default function LoyaltyPage() {
           <button onClick={handleLogout} className="text-[10px] font-bold text-gray-500 underline hover:text-red-500">Sign Out</button>
         </div>
 
-        {/* MATTE BLACK CARD */}
-        <div 
+        {/* CARD */}
+        <div
           ref={cardRef}
           onMouseMove={handleCardMouseMove}
           onMouseLeave={() => { setRotateX(0); setRotateY(0); }}
@@ -247,29 +363,29 @@ export default function LoyaltyPage() {
               </div>
               <div className="flex items-center gap-1.5 rounded-full bg-white/10 border border-white/10 px-2.5 py-1 backdrop-blur-sm">
                 <Crown size={12} className={tierColor} />
-                <span className={`text-[9px] font-black uppercase tracking-wider ${tierColor}`}>{customer.tier || "Silver"}</span>
+                <span className={`text-[9px] font-black uppercase tracking-wider ${tierColor}`}>{customer?.tier || "Silver"}</span>
               </div>
             </div>
             <div className="relative z-10 mt-4">
               <div className="h-8 w-11 rounded-md bg-gradient-to-br from-[#E6C27A] via-[#D4A84F] to-[#B88A2F] shadow-inner flex flex-col justify-between p-1">
-                 <div className="flex justify-between w-full"><div className="h-1.5 w-2 bg-black/10 rounded-sm"/><div className="h-1.5 w-2 bg-black/10 rounded-sm"/></div>
-                 <div className="h-1.5 w-full bg-black/10 rounded-sm"/>
-                 <div className="flex justify-between w-full"><div className="h-1.5 w-2 bg-black/10 rounded-sm"/><div className="h-1.5 w-2 bg-black/10 rounded-sm"/></div>
+                <div className="flex justify-between w-full"><div className="h-1.5 w-2 bg-black/10 rounded-sm" /><div className="h-1.5 w-2 bg-black/10 rounded-sm" /></div>
+                <div className="h-1.5 w-full bg-black/10 rounded-sm" />
+                <div className="flex justify-between w-full"><div className="h-1.5 w-2 bg-black/10 rounded-sm" /><div className="h-1.5 w-2 bg-black/10 rounded-sm" /></div>
               </div>
             </div>
             <div className="relative z-10 mt-5">
               <p className="text-xl font-mono tracking-[0.15em] text-gray-200">
-                1200 3567 4510 {customer.phone.slice(-4)}
+                1200 3567 4510 {(customer?.phone || "0000").slice(-4)}
               </p>
             </div>
             <div className="relative z-10 mt-5 flex items-end justify-between">
               <div className="flex gap-6">
                 <div>
                   <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Card Holder</p>
-                  <p className="text-sm font-black uppercase tracking-wider text-gray-200 truncate max-w-[140px]">{customer.name || "Valued Customer"}</p>
+                  <p className="text-sm font-black uppercase tracking-wider text-gray-200 truncate max-w-[140px]">{customer?.name || "Valued Customer"}</p>
                 </div>
                 <div>
-                  <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Valid<br/>Thru</p>
+                  <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Valid<br />Thru</p>
                   <p className="text-sm font-black text-gray-200">12/30</p>
                 </div>
               </div>
@@ -282,9 +398,9 @@ export default function LoyaltyPage() {
         </div>
 
         <div className="mt-3 flex justify-end">
-           <button onClick={() => router.push("/loyalty/staff")} className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 hover:text-[#800020] transition-colors bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-100">
-             <Lock size={12} /> Staff Login
-           </button>
+          <button onClick={() => router.push("/loyalty/staff")} className="flex items-center gap-1.5 text-[10px] font-bold text-gray-400 hover:text-[#800020] transition-colors bg-white px-3 py-1.5 rounded-full shadow-sm border border-gray-100">
+            <Lock size={12} /> Staff Login
+          </button>
         </div>
 
         <div className="mt-8 rounded-[24px] border border-[#800020]/10 bg-white p-5 shadow-sm">
@@ -294,80 +410,75 @@ export default function LoyaltyPage() {
               <p className="text-[10px] text-gray-500">Collect stamps and unlock rewards</p>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-xl font-black text-[#800020]">{customer.stamps}</span>
+              <span className="text-xl font-black text-[#800020]">{stamps}</span>
               <span className="text-xs font-bold text-gray-400">/ 8</span>
             </div>
           </div>
 
           <div className="grid grid-cols-4 gap-3 mb-6">
             {Array.from({ length: 8 }).map((_, i) => {
-              const isFilled = i < customer.stamps;
+              const isFilled = i < stamps;
               return (
                 <motion.div key={i} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.05 }} className={`flex aspect-square flex-col items-center justify-center rounded-xl border-2 transition-all duration-500 ${isFilled ? 'border-[#D4A84F] bg-gradient-to-br from-[#FFF9D8] to-[#F5DDA8] text-[#800020] shadow-[0_4px_10px_rgba(212,168,79,0.3)]' : 'border-dashed border-gray-200 bg-gray-50 text-gray-300'}`}>
                   {isFilled ? <CheckCircle2 size={20} strokeWidth={2.5} /> : <Gift size={18} />}
-                  <span className="text-[8px] font-black mt-1 uppercase">{isFilled ? "Earned" : i+1}</span>
+                  <span className="text-[8px] font-black mt-1 uppercase">{isFilled ? "Earned" : i + 1}</span>
                 </motion.div>
               );
             })}
           </div>
 
-          {customer.rewards > 0 ? (
+          {rewards > 0 ? (
             <div className="rounded-xl bg-gradient-to-r from-[#138047] to-[#0D6837] p-4 text-center text-white shadow-md">
               <p className="text-xs font-black flex items-center justify-center gap-1.5">
-                <Sparkles size={14} /> 🎉 {customer.rewards} reward(s) ready!
+                <Sparkles size={14} /> 🎉 {rewards} reward(s) ready!
               </p>
               <p className="text-[10px] text-white/80 mt-1">₹75 off on your next ₹699+ bill.</p>
             </div>
           ) : (
             <div className="rounded-xl bg-[#FFF9D8] p-4 text-center border border-[#D4A84F]/30">
-              <p className="text-xs font-bold text-[#800020]">{8 - customer.stamps} more stamp(s) to unlock ₹75 reward!</p>
+              <p className="text-xs font-bold text-[#800020]">{Math.max(0, 8 - stamps)} more stamp(s) to unlock ₹75 reward!</p>
             </div>
           )}
         </div>
 
-        {/* COUPON & INFO SECTION (Scratch Card removed) */}
         <div className="mt-5 grid grid-cols-1 gap-3">
-          
-          {/* Coupon Card */}
           <div className={`rounded-xl border p-4 shadow-sm flex items-center justify-between transition-colors ${couponCode ? 'border-[#138047]/20 bg-[#138047]/5' : 'border-gray-200 bg-gray-50'}`}>
             <div>
               <h3 className={`text-sm font-black mb-0.5 flex items-center gap-1 ${couponCode ? 'text-[#138047]' : 'text-gray-500'}`}>
                 <Ticket size={14} /> Your Reward Coupon
               </h3>
-              
+
               {couponCode ? (
-                 <p className="text-[10px] text-[#138047]/70 font-bold">Tap to view code</p>
-              ) : customer.rewards > 0 ? (
-                 <p className="text-[10px] text-gray-500 font-bold">Generate a code</p>
+                <p className="text-[10px] text-[#138047]/70 font-bold">Tap to view code</p>
+              ) : rewards > 0 ? (
+                <p className="text-[10px] text-gray-500 font-bold">Generate a code</p>
               ) : (
-                 <p className="text-[10px] text-gray-400 font-bold">Locked (Need 8 stamps)</p>
+                <p className="text-[10px] text-gray-400 font-bold">Locked (Need 8 stamps)</p>
               )}
             </div>
 
             {couponCode ? (
-              <button onClick={generateCoupon} className="h-10 px-4 rounded-lg font-black text-xs shadow-sm transition-colors bg-[#138047] text-white hover:bg-[#0D6837]">VIEW CODE</button>
-            ) : customer.rewards > 0 ? (
-               <button onClick={generateCoupon} className="h-10 px-4 rounded-lg font-black text-xs shadow-sm transition-colors bg-[#D4A84F] text-white hover:bg-[#C28E2B]">GET CODE</button>
+              <button onClick={() => setShowCoupon(true)} className="h-10 px-4 rounded-lg font-black text-xs shadow-sm transition-colors bg-[#138047] text-white hover:bg-[#0D6837]">VIEW CODE</button>
+            ) : rewards > 0 ? (
+              <button onClick={generateCoupon} className="h-10 px-4 rounded-lg font-black text-xs shadow-sm transition-colors bg-[#D4A84F] text-white hover:bg-[#C28E2B]">GET CODE</button>
             ) : (
               <button disabled className="h-10 px-4 rounded-lg font-black text-xs shadow-sm transition-colors bg-gray-200 text-gray-400 cursor-not-allowed">LOCKED</button>
             )}
           </div>
-          
-          {/* PHONE NUMBER */}
+
           <div className="rounded-xl border border-[#800020]/10 bg-white p-4 shadow-sm flex flex-col justify-center relative overflow-hidden">
             <div className="absolute -right-4 -bottom-4 text-[#800020]/5"><Phone size={80} /></div>
             <h3 className="text-sm font-black text-[#800020] mb-1 flex items-center gap-1.5"><User size={14} /> Show at Store</h3>
             <p className="text-[10px] text-gray-500 font-medium mb-2">Give your number to staff for stamps.</p>
             <div className="text-lg font-black text-gray-800 tracking-wider bg-gray-50 p-2 rounded-lg border border-gray-200 text-center">
-              {customer.phone}
+              {customer?.phone}
             </div>
           </div>
         </div>
 
-        {/* History */}
         <div className="mt-5 rounded-xl border border-[#800020]/10 bg-white p-4 shadow-sm mb-12">
           <h3 className="text-sm font-black text-[#800020] mb-3 flex items-center gap-1.5"><History size={16} /> Recent Activity</h3>
-          {(!customer.history || customer.history.length === 0) ? (
+          {(!customer?.history || customer.history.length === 0) ? (
             <p className="text-xs text-gray-500">Koi activity nahi hai. Store par bill karke stamp kamayein.</p>
           ) : (
             <div className="divide-y divide-gray-100">
@@ -400,7 +511,7 @@ export default function LoyaltyPage() {
                 <div className="border-2 border-dashed border-[#138047]/30 bg-[#138047]/5 rounded-2xl p-4 sm:p-6 mb-6 relative">
                   <p className="text-3xl sm:text-4xl font-mono font-black text-[#138047] tracking-widest">{couponCode}</p>
                   <button onClick={copyToClipboard} className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white border border-gray-200 text-xs font-bold text-gray-600 px-3 py-1 rounded-full shadow-sm flex items-center gap-1 hover:text-[#138047]">
-                    {copied ? <><Check size={12} className="text-green-600"/> Copied</> : <><Copy size={12}/> Copy Code</>}
+                    {copied ? <><Check size={12} className="text-green-600" /> Copied</> : <><Copy size={12} /> Copy Code</>}
                   </button>
                 </div>
                 <p className="text-[10px] font-bold text-gray-400">* Valid on bill above ₹699. 1 coupon per bill.</p>

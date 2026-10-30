@@ -12,7 +12,7 @@ export default function LoginPage() {
 
   const [step, setStep] = useState(1); // 1 = Mobile, 2 = OTP
   const [mobile, setMobile] = useState("");
-  const [name, setName] = useState(""); // Naya state name ke liye
+  const [name, setName] = useState("");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -39,15 +39,47 @@ export default function LoginPage() {
     }
 
     setIsLoading(true);
+    
     setTimeout(() => {
-      // Save to local storage (Dummy Login)
-      localStorage.setItem("rmm_user", JSON.stringify({ 
+      // 🔥 1. CHECK IF USER IS BLOCKED
+      const loyaltyCustomers = JSON.parse(localStorage.getItem("rmm_loyalty_customers") || "[]");
+      const existingUser = loyaltyCustomers.find((c: any) => c.phone === mobile);
+
+      if (existingUser && existingUser.active === false) {
+        setError(isHindi 
+          ? "आपका अकाउंट ब्लॉक कर दिया गया है। कृपया दुकान पर संपर्क करें।" 
+          : "Your account has been blocked. Please contact the store."
+        );
+        setIsLoading(false);
+        return; // Aage mat badho, login mat karo
+      }
+
+      // 2. Main User Account Save
+      const userData = { 
         mobile, 
         name: name.trim() || "Customer" 
-      }));
+      };
+      localStorage.setItem("rmm_user", JSON.stringify(userData));
       
-      // Redirect to account
-      router.push("/account");
+      // 3. Loyalty Account Auto-Sync (Agar pehle se nahi hai)
+      if (!existingUser) {
+        const newLoyaltyProfile = {
+          phone: mobile,
+          name: name.trim() || "Valued Customer",
+          stamps: 0,
+          rewards: 0,
+          totalSpent: 0,
+          history: [],
+          tier: "Silver"
+        };
+        localStorage.setItem("rmm_loyalty_customers", JSON.stringify([newLoyaltyProfile, ...loyaltyCustomers]));
+      }
+
+      // 4. Loyalty Auto-Login Set
+      localStorage.setItem("rmm_loyalty_logged_in", mobile);
+      
+      // 5. Redirect (fresh load ke liye)
+      window.location.href = "/account";
     }, 800);
   };
 
@@ -169,7 +201,7 @@ export default function LoginPage() {
                   {isLoading ? (
                     <><Loader2 size={18} className="animate-spin" /> {isHindi ? "लॉगिन हो रहा है..." : "Logging in..."}</>
                   ) : (
-                    <><ShieldCheck size={18} /> {isHindi ? "वेरिफाई करें" : "Verify & Login"}</>
+                    <><ShieldCheck size={18} /> {isHindi ? "वेरीफाई करें" : "Verify & Login"}</>
                   )}
                 </button>
                 <button

@@ -1,3 +1,4 @@
+// app/checkout/CheckoutClient.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -70,11 +71,11 @@ export default function CheckoutClient() {
   const handlePlaceOrder = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const orderId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+    const orderId = `WEB-${Math.floor(100000 + Math.random() * 900000)}`; // WEB Prefix
     const orderDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     
     const orderLines = [
-      isHindi ? "नमस्ते राशिद मेगा मार्ट, मेरा नया ऑर्डर:" : "Hello Rashid Mega Mart, my new order:",
+      isHindi ? "नमस्ते राशिद मेगा मार्ट, मेरा नया ऑनलाइन ऑर्डर:" : "Hello Rashid Mega Mart, my new ONLINE order:",
       "",
       `🆔 ${isHindi ? "ऑर्डर आईडी" : "Order ID"}: ${orderId}`,
       `👤 ${isHindi ? "नाम" : "Name"}: ${formData.name}`,
@@ -94,6 +95,7 @@ export default function CheckoutClient() {
 
     const whatsappUrl = `https://wa.me/918962531603?text=${encodeURIComponent(orderLines.join("\n"))}`;
     
+    // 🔥 1. ORDER OBJECT ME SOURCE ADD KIYA
     const newOrder = {
       id: orderId,
       date: orderDate,
@@ -101,12 +103,26 @@ export default function CheckoutClient() {
       total: finalTotal,
       couponUsed: appliedCoupon,
       customer: formData,
-      status: "confirmed"
+      customerPhone: formData.phone, // Staff POS ke liye
+      status: "Pending",             // Pending status taaki admin track kar sake
+      source: "Website"              // Online order tag
     };
 
-    const existingOrders = JSON.parse(localStorage.getItem("rmm_orders") || "[]");
-    localStorage.setItem("rmm_orders", JSON.stringify([newOrder, ...existingOrders]));
+    // 2. Website Orders me save karo
+    const existingWebOrders = JSON.parse(localStorage.getItem("rmm_website_orders") || "[]");
+    localStorage.setItem("rmm_website_orders", JSON.stringify([newOrder, ...existingWebOrders]));
 
+    // 🔥 3. LIVE ALERT SAVE KARO (Staff & Admin Notification ke liye)
+    const newAlert = {
+      id: orderId,
+      message: `New Online Order of ₹${finalTotal} by ${formData.name}`,
+      time: new Date().toLocaleTimeString(),
+      isRead: false
+    };
+    const existingAlerts = JSON.parse(localStorage.getItem("rmm_order_alerts") || "[]");
+    localStorage.setItem("rmm_order_alerts", JSON.stringify([newAlert, ...existingAlerts]));
+
+    // 4. Coupon Remove Logic
     if (appliedCoupon) {
       const allCoupons = JSON.parse(localStorage.getItem("rmm_coupons") || "{}");
       const entry = Object.entries(allCoupons).find(([_, code]) => code === appliedCoupon);
@@ -128,7 +144,6 @@ export default function CheckoutClient() {
     } catch (error) {}
   };
 
-  // 🔥 RECEIPT PRINT FUNCTION (Same as before)
   const handlePrintReceipt = () => {
     if (!placedOrder) return;
     const printWindow = window.open('', '_blank');

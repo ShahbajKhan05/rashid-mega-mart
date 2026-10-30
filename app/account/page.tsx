@@ -21,24 +21,48 @@ export default function AccountPage() {
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [savedAddress, setSavedAddress] = useState({ address: "", pincode: "" });
 
-  // 🔥 NAYA: Notifications State
+  // Notifications State
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isNotifModalOpen, setIsNotifModalOpen] = useState(false);
 
   useEffect(() => {
+    // 🔥 1. CHECK IF USER IS BLOCKED
     const savedUser = localStorage.getItem("rmm_user");
     if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      const loyaltyCustomers = JSON.parse(localStorage.getItem("rmm_loyalty_customers") || "[]");
+      const currentLoyaltyUser = loyaltyCustomers.find((c: any) => c.phone === userData.mobile);
+
+      // Agar block hai to bahar nikal do
+      if (currentLoyaltyUser && currentLoyaltyUser.active === false) {
+        alert(isHindi 
+          ? "आपका अकाउंट ब्लॉक कर दिया गया है।" 
+          : "Your account has been blocked by the admin."
+        );
+        localStorage.removeItem("rmm_user");
+        localStorage.removeItem("rmm_loyalty_logged_in");
+        window.location.href = "/";
+        return;
+      }
+    }
+
+    // 2. Normal Login Check
+    if (savedUser) {
       setUser(JSON.parse(savedUser));
+      setIsLoading(false);
     } else {
       router.push("/login");
     }
     
+    // 3. Load Address
     const addressData = localStorage.getItem("rmm_saved_address");
     if (addressData) {
-      setSavedAddress(JSON.parse(addressData));
+      try {
+        setSavedAddress(JSON.parse(addressData));
+      } catch (e) {}
     }
 
-    // 🔥 GENERATE REAL NOTIFICATIONS FROM ORDERS
+    // 4. Generate Notifications
     const allOrders = JSON.parse(localStorage.getItem("rmm_orders") || "[]");
     const generatedNotifications: any[] = [];
 
@@ -63,12 +87,37 @@ export default function AccountPage() {
     });
 
     setNotifications(generatedNotifications);
-    setIsLoading(false);
   }, [router, isHindi]);
 
+  // Permanent Delete / Logout
   const handleLogout = () => {
-    localStorage.removeItem("rmm_user");
-    router.push("/");
+    const confirmDelete = window.confirm(
+      isHindi 
+        ? "क्या आप वाकई अपना अकाउंट डिलीट करना चाहते हैं? आपका सारा डेटा (ऑर्डर्स, पॉइंट्स, कार्ट) हमेशा के लिए मिट जाएगा।" 
+        : "Are you sure you want to delete your account? All your data will be lost permanently."
+    );
+
+    if (!confirmDelete) return;
+
+    if (typeof window !== "undefined") {
+      const keysToRemove = [
+        "rmm_user",
+        "rmm_cart",
+        "rmm_saved_address",
+        "rmm_loyalty_logged_in",
+        "rmm_notifications",
+        "rmm_wishlist"
+      ];
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+
+      if (user && user.mobile) {
+        const allCustomers = JSON.parse(localStorage.getItem("rmm_loyalty_customers") || "[]");
+        const updatedCustomers = allCustomers.filter((c: any) => c.phone !== user.mobile);
+        localStorage.setItem("rmm_loyalty_customers", JSON.stringify(updatedCustomers));
+      }
+    }
+
+    window.location.href = "/";
   };
 
   const handleSaveAddress = (e: React.FormEvent) => {
@@ -77,7 +126,15 @@ export default function AccountPage() {
     setIsAddressModalOpen(false);
   };
 
-  if (isLoading || !user) return null;
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#FFF9D8]">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#800020] border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-[#FFF9D8] pb-24 px-4 pt-6">
@@ -156,7 +213,6 @@ export default function AccountPage() {
             <ChevronRight size={20} className="text-gray-400" />
           </button>
 
-          {/* 🔥 NOTIFICATIONS (Real Data) */}
           <button onClick={() => setIsNotifModalOpen(true)} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition text-left">
             <div className="flex items-center gap-4">
               <div className="relative">
@@ -186,7 +242,7 @@ export default function AccountPage() {
           <button onClick={handleLogout} className="w-full flex items-center justify-between p-4 hover:bg-red-50 transition text-left">
             <div className="flex items-center gap-4">
               <LogOut size={22} className="text-red-500" />
-              <span className="text-sm font-bold text-red-600">{isHindi ? "लॉगआउट" : "Logout"}</span>
+              <span className="text-sm font-bold text-red-600">{isHindi ? "लॉगआउट / अकाउंट डिलीट" : "Logout / Delete Account"}</span>
             </div>
           </button>
 
@@ -243,7 +299,7 @@ export default function AccountPage() {
         </div>
       )}
 
-      {/* 🔥 NOTIFICATIONS MODAL (Real Data) */}
+      {/* NOTIFICATIONS MODAL */}
       {isNotifModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={() => setIsNotifModalOpen(false)}>
           <div 
