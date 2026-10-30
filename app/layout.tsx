@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     siteName: "Rashid Mega Mart",
     images: [
       {
-        url: "/opengraph-image.tsx",
+        url: "/opengraph-image", // 🔥 .tsx HATA DO
         width: 1200,
         height: 630,
         alt: "Rashid Mega Mart Logo",
@@ -60,9 +60,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Rashid Mega Mart | Best Grocery Store in Rewa",
     description: "Order daily essentials and get them delivered fast.",
-    images: ["/opengraph-image.tsx"],
+    images: ["/opengraph-image"], // 🔥 .tsx HATA DO
   },
-
   robots: {
     index: true,
     follow: true,
