@@ -13,7 +13,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  // 🔥 Yahan Vercel ka link rakha hai taaki Facebook confuse na ho
+  // 🔥 Vercel ka link taaki Facebook confuse na ho
   metadataBase: new URL("https://rashid-mega-mart.vercel.app"),
   title: {
     default: "Rashid Mega Mart | Best Grocery Store in Ghoghar, Rewa",
@@ -46,15 +46,25 @@ export const metadata: Metadata = {
     siteName: "Rashid Mega Mart",
     locale: "en_IN",
     type: "website",
-    // ❌ YAHAN SE IMAGES WALI LINE HATA DI HAI
+    images: [
+      {
+        // 🔥 YAHAN SEEDHA IMAGE KA NAAM HAI
+        url: "/og-banner.jpg", 
+        width: 1200,
+        height: 630,
+        alt: "Rashid Mega Mart Banner",
+      },
+    ],
   },
 
   twitter: {
     card: "summary_large_image",
     title: "Rashid Mega Mart | Best Grocery Store in Rewa",
     description: "Order daily essentials and get them delivered fast.",
-    // ❌ YAHAN SE BHI IMAGES WALI LINE HATA DI HAI
+    // 🔥 YAHAN BHI IMAGE KA NAAM
+    images: ["/og-banner.jpg"], 
   },
+  
   robots: {
     index: true,
     follow: true,
