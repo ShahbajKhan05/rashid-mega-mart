@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     images: [
       {
         // 🔥 YAHAN POORA URL DAALA HAI
-        url: "https://rashid-mega-mart.vercel.app/opengraph-image", 
+        url: "/opengraph-image.png", 
         width: 1200,
         height: 630,
         alt: "Rashid Mega Mart Logo",
